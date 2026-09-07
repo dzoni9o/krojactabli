@@ -1,0 +1,30 @@
+/* NikVolt dizajn sistem — tamni industrijski */
+:root {
+  --nv-bg: #0a0a0a;
+  --nv-surface: #121212;
+  --nv-surface-2: #191919;
+  --nv-line: #262626;
+  --nv-line-strong: #3a3a3a;
+
+  --nv-text: #f2f2f2;
+  --nv-text-dim: #8a8a8a;
+  --nv-text-faint: #5a5a5a;
+
+  --nv-accent: #eaff00;
+  --nv-accent-dim: #b8c800;
+  --nv-accent-ink: #0a0a0a;
+
+  --nv-warn: #ff9d2e;
+  --nv-danger: #ff4d4d;
+  --nv-ok: #5ee08a;
+
+  --nv-mono: 'Space Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+  --nv-display: 'Syne', 'Space Mono', system-ui, sans-serif;
+
+  --nv-r-sm: 2px;
+  --nv-r: 4px;
+  --nv-r-lg: 8px;
+
+  --nv-tap: 44px;
+  --nv-nav-h: 60px;
+}

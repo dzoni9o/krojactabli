@@ -4,7 +4,7 @@
 > prostoru u gotov komad, a aplikacija izbacuje krojnu listu i raspored rezova
 > po tablama.
 
-**Status:** planiranje · **Verzija plana:** 0.1 · **Datum:** 2026-09-07
+**Status:** planiranje · **Verzija plana:** 0.2 · **Datum:** 2026-09-07
 
 ---
 
@@ -32,6 +32,10 @@ frontovi), slaže ih u 3D prostoru da proveri da li se sklop poklapa, i dobija:
 | Radni prostor | **3D sklop gore, raspored po tablama dole** | Dva pogleda, jedan izvor podataka |
 | Mašina | **Formatna testera / dobavljač** | Nesting MORA biti guillotine (rez kroz celu tablu, s kraja na kraj) |
 | Unos delova | **Ručno, deo po deo** | Nema kataloga u v1; brži start, jednostavniji model |
+| Obim projekta | **Ceo prostor** (kuhinja, soba, predsoblje) | Više sklopova u projektu; nesting spaja delove SVIH sklopova po materijalu |
+| Tabla | **2800 × 2070** | Default; podesivo po materijalu |
+| Kerf (rez) | **3,2 mm** | Default; podesivo |
+| Kantovanje | **Ne menja meru** | Kantarica prefrezuje ivicu — mera reza = gotova mera |
 
 **Zašto je guillotine bitno:** algoritam koji „lepo popuni" tablu proizvoljnim
 rasporedom daje listu koja se ne može iseći na formatnoj testeri. Svaki rez mora
@@ -42,7 +46,7 @@ ići od ivice do ivice ostatka table. Ovo je tvrdo ograničenje algoritma, ne op
 ## 3. Domenski model
 
 ```
-Projekat (mušterija / posao)
+Projekat (kuhinja / soba / predsoblje — ceo prostor)
 ├── Materijali[]        naziv, dekor, debljina, dim. table, kerf, trim, ima_teksturu, cena/m²
 ├── Kantovi[]           naziv, debljina (0.4 / 1 / 2 mm), boja, cena/m
 ├── Delovi[]            ← srce aplikacije
@@ -53,17 +57,24 @@ Projekat (mušterija / posao)
 │     ├── kantovanje    { L1, L2, W1, W2 } → kantId | prazno
 │     ├── tekstura      zaključana (ne sme rotacija 90°) | slobodna
 │     └── transform     pozicija + orijentacija u 3D sklopu
-├── Sklop               gabarit korpusa + grupisanje delova
+├── Sklopovi[]          elementi u prostoru (donji element, viseći, plakar...)
+│     ├── naziv, gabarit (Š × V × D)
+│     └── delovi pripadaju sklopu
 └── Plan rezanja[]      rezultat nestinga, po materijalu
 ```
 
-### 3.1 Gotova mera vs. mera reza — obavezno
-Najčešća greška u ručnim krojnim listama. Ako je gotova mera fronta 600 i kantuje
-se 2 mm sa obe strane, ploča se seče na **596**. Aplikacija drži oba broja:
+### 3.1 Kantovanje ne menja meru
+Kantarica prefrezuje ivicu ploče pre lepljenja kanta, pa kant vraća meru na
+nominalnu. **Mera koju uneseš je i mera reza.** Nema preračunavanja, nema
+„gotova vs. sirova mera" — jedan broj, i na testeri i u sklopu.
 
-- korisnik bira režim: **unosim gotovu meru** (default) ili **unosim meru reza**
-- krojna lista prikazuje **meru reza** (to ide na testeru)
-- 3D sklop i sastavnica prikazuju **gotovu meru**
+Kantovanje se i dalje evidentira po ivicama (L1/L2/W1/W2) jer treba za:
+- **metre kanta** po tipu (nabavka, cena)
+- **radni nalog** — koja ivica se kantuje na kojoj ploči
+
+*(Napomena za v2: radionice koje kantuju ručno, bez prefrezovanja, rade drugačije.
+Ako se aplikacija bude prodavala, dodati opciono podešavanje „oduzmi debljinu
+kanta od mere". Za nas — ne treba.)*
 
 ### 3.2 Debljina ploče u sklopu
 Kad se u 3D-u ploča prisloni uz drugu, aplikacija zna debljinu i može da
@@ -178,15 +189,14 @@ može dati povratnu informaciju. 3D dolazi na gotov, testiran temelj.
 - **Katalog parametarskih elemenata** (kuhinjski donji/gornji, plakar, fioke) —
   najveće ubrzanje, ali tek kad ručni unos radi savršeno
 - **Okovi i fiorke** — bušenje, konfirmati, vođice? Verovatno van opsega.
-- **Više sklopova u jednom projektu** — cela kuhinja, ne jedan element
-  (nesting mora da spoji delove svih sklopova po materijalu — planirati model tako od početka)
 - **Cenovnik ploča** — ručno ili uvoz od dobavljača
 - **Odnos prema `tabla.nikvolt.com`** — deli isti PDF sloj, može zajednička biblioteka
 
 ---
 
-## 10. Napomena o prioritetima
+## 10. Odnos prema ostalim projektima
 
-`nikvolt-planner` (React + Supabase + Zustand migracija) je i dalje prioritet #1.
-Ovaj projekat je planiran, ali ne bi trebalo da mu uzme fokus dok Planner ne bude
-gotov — osim ako ne postoji konkretan kupac ili posao koji to opravdava.
+Odlučeno: radi se ovaj projekat. `nikvolt-planner` čeka.
+
+Kod koji se deli sa Planner-om i `tabla.nikvolt.com`: dizajn sistem, Zustand
+pattern, offline-first sloj, PDF izlaz. Držati te delove čistim i prenosivim.
