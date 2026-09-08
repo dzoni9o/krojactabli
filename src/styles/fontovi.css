@@ -4,6 +4,11 @@
  * Ne učitavaju se sa Google Fonts jer aplikacija mora da radi bez mreže —
  * na gradilištu bez signala eksterni font ne stigne, a s njim ode i pola
  * identiteta. Podskupovi: latin + latin-ext (latin-ext nosi č ć š ž đ).
+ *
+ * Space Mono je statičan, pa ima zaseban fajl po debljini. Syne je
+ * varijabilan (wght 400–800) i ceo raspon staje u JEDAN fajl — zato jedno
+ * lice sa opsegom težine, a ne po jedno za 700 i 800 (isti fajl dvaput).
+ *
  * Izvor: Google Fonts, SIL Open Font License 1.1.
  */
 
@@ -47,42 +52,22 @@
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-/* Syne 700 — latin-ext */
+/* Syne varijabilni 400–800 — latin-ext */
 @font-face {
   font-family: 'Syne';
   font-style: normal;
-  font-weight: 700;
+  font-weight: 400 800;
   font-display: swap;
-  src: url(/fontovi/Syne-700-latin-ext.woff2) format('woff2');
+  src: url(/fontovi/Syne-latin-ext.woff2) format('woff2');
   unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 
-/* Syne 700 — latin */
+/* Syne varijabilni 400–800 — latin */
 @font-face {
   font-family: 'Syne';
   font-style: normal;
-  font-weight: 700;
+  font-weight: 400 800;
   font-display: swap;
-  src: url(/fontovi/Syne-700-latin.woff2) format('woff2');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
-
-/* Syne 800 — latin-ext */
-@font-face {
-  font-family: 'Syne';
-  font-style: normal;
-  font-weight: 800;
-  font-display: swap;
-  src: url(/fontovi/Syne-800-latin-ext.woff2) format('woff2');
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
-}
-
-/* Syne 800 — latin */
-@font-face {
-  font-family: 'Syne';
-  font-style: normal;
-  font-weight: 800;
-  font-display: swap;
-  src: url(/fontovi/Syne-800-latin.woff2) format('woff2');
+  src: url(/fontovi/Syne-latin.woff2) format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
