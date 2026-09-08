@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import './styles/global.css';
 import './styles/app.css';
 import { useT } from './i18n';
@@ -6,7 +7,11 @@ import { TabBar } from './components/TabBar';
 import { DeloviScreen } from './screens/DeloviScreen';
 import { MaterijaliScreen } from './screens/MaterijaliScreen';
 import { RasporedScreen } from './screens/RasporedScreen';
-import { UskoroScreen } from './screens/UskoroScreen';
+
+// three.js je krupan — ucitava se tek kad se otvori 3D sklop.
+const SklopScreen = lazy(() =>
+  import('./screens/SklopScreen').then((m) => ({ default: m.SklopScreen })),
+);
 import { DeoIzmena } from './screens/DeoIzmena';
 
 export default function App() {
@@ -36,7 +41,9 @@ export default function App() {
         {ekran === 'delovi' && <DeloviScreen />}
         {ekran === 'raspored' && <RasporedScreen />}
         {ekran === 'sklop' && (
-          <UskoroScreen faza="F4" naslov="Sklop" opis="Sklapanje korpusa u 3D prostoru." />
+          <Suspense fallback={<div className="traka"><div className="traka__punjenje" style={{ width: '40%' }} /></div>}>
+            <SklopScreen />
+          </Suspense>
         )}
         {ekran === 'materijali' && <MaterijaliScreen />}
       </main>

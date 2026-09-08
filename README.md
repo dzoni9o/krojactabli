@@ -13,7 +13,7 @@ Plan i domenske odluke: **[PLAN.md](./PLAN.md)**
 | F1 | Materijali, kantovanje, unos delova, sklopovi, lokalna persistencija | ✅ |
 | F2 | Nesting (guillotine + kerf + obrez + tekstura) i prikaz tabli | ✅ |
 | F3 | PDF i CSV izlaz | ✅ |
-| F4 | 3D sklapanje korpusa | — |
+| F4 | 3D sklapanje korpusa | ✅ |
 | F5 | Supabase sync (offline → online) | — |
 
 ## Pokretanje
@@ -33,6 +33,8 @@ npm run typecheck
 - **Projekat je ceo prostor** (kuhinja, soba…), sa više sklopova. Nesting spaja
   delove svih sklopova po materijalu.
 - Default-i: tabla **2800 × 2070**, rez **3,2 mm**, obrez ivica **10 mm**.
+- **Položaj u sklopu je poravnanje uz gabarit + pomak**, ne apsolutna koordinata —
+  kad se gabarit promeni, delovi ga prate.
 
 ## Struktura
 
@@ -43,6 +45,7 @@ src/
   lib/obracun.ts      površine, metri kanta, rezime projekta
   lib/nesting/        guillotine engine + Web Worker
   lib/izvoz/          PDF (jsPDF) i CSV, sa ugrađenim fontom za srpska slova
+  lib/sklop.ts        položaj delova u prostoru i provera sklopa
   store/              Zustand: projekat (persist) + stanje UI-ja
   components/         Fioka, KantIzbor, Prekidac, TabBar, Polje
   screens/            Delovi, Materijali, izmena dela, placeholderi

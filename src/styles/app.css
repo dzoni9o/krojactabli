@@ -604,3 +604,88 @@
   padding-left: 18px;
   color: var(--nv-text-dim);
 }
+
+/* ── 3D sklop ───────────────────────────────────────────── */
+.scena {
+  position: relative;
+  height: 46vh;
+  min-height: 260px;
+  background: #101010;
+  border: 1px solid var(--nv-line);
+  border-radius: var(--nv-r-lg);
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.scena__uput {
+  position: absolute;
+  left: 10px;
+  bottom: 8px;
+  font-size: 10px;
+  color: var(--nv-text-faint);
+  pointer-events: none;
+}
+
+.sklop__glava {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.sklop__osa {
+  padding-top: 12px;
+  margin-top: 12px;
+  border-top: 1px solid var(--nv-line);
+}
+
+.sklop__osa .nv-label {
+  margin-bottom: 8px;
+}
+
+/* ── Segmentirani izbor ─────────────────────────────────── */
+.segmenti {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+
+.segment {
+  min-height: 40px;
+  padding: 0 6px;
+  border: 1px solid var(--nv-line-strong);
+  border-radius: var(--nv-r);
+  background: var(--nv-surface-2);
+  font-size: 11px;
+  color: var(--nv-text-dim);
+  transition: border-color 0.12s, color 0.12s, background 0.12s;
+}
+
+.segment--on {
+  background: var(--nv-accent);
+  border-color: var(--nv-accent);
+  color: var(--nv-accent-ink);
+  font-weight: 700;
+}
+
+.scena__centar {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--nv-line-strong);
+  border-radius: var(--nv-r);
+  background: rgba(10, 10, 10, 0.7);
+  color: var(--nv-text-dim);
+  font-size: 16px;
+  line-height: 1;
+}
+
+.scena__centar:hover {
+  color: var(--nv-accent);
+  border-color: var(--nv-accent);
+}

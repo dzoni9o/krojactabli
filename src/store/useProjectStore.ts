@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Deo, Kantovanje, Materijal, Projekat, Sklop } from '../types/domain';
-import { PRAZNO_KANTOVANJE } from '../types/domain';
+import type { Deo, Kantovanje, Materijal, Polozaj, Projekat, Sklop } from '../types/domain';
+import { PODRAZUMEVAN_POLOZAJ, PRAZNO_KANTOVANJE } from '../types/domain';
 import { noviProjekat } from '../data/defaults';
 import { uid } from '../lib/uid';
 
@@ -19,6 +19,11 @@ interface ProjectState {
   izmeniDeo: (id: string, izmena: Partial<Deo>) => void;
   obrisiDeo: (id: string) => void;
   duplirajDeo: (id: string) => void;
+
+  /** Postavlja deo u prostor sklopa ili menja njegov položaj. */
+  postaviPolozaj: (id: string, izmena: Partial<Polozaj>) => void;
+  /** Vraća deo iz prostora u „nepostavljene". */
+  ukloniIzProstora: (id: string) => void;
 
   /** Zaključava teksturu svim delovima na materijalima sa teksturom. */
   zakljucajTeksturuGdeTreba: () => void;
@@ -87,6 +92,7 @@ export const useProjectStore = create<ProjectState>()(
           kom: 1,
           teksturaZakljucana: false,
           napomena: '',
+          polozaj: null,
           ...deo,
           id,
           kant: deo?.kant ? { ...deo.kant } : praznoKantovanje(),
@@ -120,6 +126,26 @@ export const useProjectStore = create<ProjectState>()(
           delovi.splice(i + 1, 0, kopija);
           return { projekat: { ...s.projekat, delovi } };
         }),
+
+      postaviPolozaj: (id, izmena) =>
+        set((s) => ({
+          projekat: {
+            ...s.projekat,
+            delovi: s.projekat.delovi.map((d) =>
+              d.id === id
+                ? { ...d, polozaj: { ...(d.polozaj ?? PODRAZUMEVAN_POLOZAJ), ...izmena } }
+                : d,
+            ),
+          },
+        })),
+
+      ukloniIzProstora: (id) =>
+        set((s) => ({
+          projekat: {
+            ...s.projekat,
+            delovi: s.projekat.delovi.map((d) => (d.id === id ? { ...d, polozaj: null } : d)),
+          },
+        })),
 
       zakljucajTeksturuGdeTreba: () =>
         set((s) => ({
@@ -178,6 +204,20 @@ export const useProjectStore = create<ProjectState>()(
           };
         }),
     }),
-    { name: 'krojac-tabli/projekat', version: 1 },
+    {
+      name: 'krojac-tabli/projekat',
+      version: 2,
+      /** v1 nije imao položaj u prostoru — stari projekti ostaju ispravni. */
+      migrate: (sacuvano, verzija) => {
+        const stanje = sacuvano as { projekat: Projekat };
+        if (verzija < 2 && stanje?.projekat) {
+          stanje.projekat.delovi = stanje.projekat.delovi.map((d) => ({
+            ...d,
+            polozaj: d.polozaj ?? null,
+          }));
+        }
+        return stanje;
+      },
+    },
   ),
 );
