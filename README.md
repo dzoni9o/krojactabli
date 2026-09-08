@@ -25,6 +25,15 @@ npm run build      # provera tipova + produkcijski build
 npm run typecheck
 ```
 
+## Šta već radi
+
+- unos delova sa kantovanjem po ivicama, grupisanih u sklopove
+- **dupliranje sklopa** sa svim delovima — cela kuhinja iz jednog elementa
+- nesting po materijalu preko svih sklopova, sa iskorišćenjem i ostacima
+- 3D provera korpusa: preklapanja i delovi koji vire iz gabarita
+- PDF krojna lista sa crtežima tabli, CSV za dobavljača
+- obračun cene: ploče po **broju tabli** (ne po kvadraturi delova) + kant po metru
+
 ## Osnovna pravila domena
 
 - **Mera koju uneseš je i mera reza.** Kantarica prefrezuje ivicu pre lepljenja

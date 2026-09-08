@@ -68,6 +68,22 @@ function MaterijalKartica({ materijal }: { materijal: Materijal }) {
         </Polje>
       </div>
 
+      <div className="polja" style={{ marginBottom: 12 }}>
+        <Polje oznaka={`${t('Cena po m²')} (RSD)`}>
+          <input
+            type="number"
+            inputMode="decimal"
+            placeholder="—"
+            value={materijal.cenaPoM2 ?? ''}
+            onChange={(e) =>
+              izmeni(materijal.id, {
+                cenaPoM2: e.target.value === '' ? null : broj(e.target.value),
+              })
+            }
+          />
+        </Polje>
+      </div>
+
       <Prekidac
         ukljucen={materijal.imaTeksturu}
         tekst={t('Ima teksturu')}
@@ -93,6 +109,7 @@ export function MaterijaliScreen() {
   const materijali = useProjectStore((s) => s.projekat.materijali);
   const kantovi = useProjectStore((s) => s.projekat.kantovi);
   const dodaj = useProjectStore((s) => s.dodajMaterijal);
+  const izmeniKant = useProjectStore((s) => s.izmeniKant);
   const t = useT();
 
   return (
@@ -117,9 +134,24 @@ export function MaterijaliScreen() {
 
       <div className="card">
         {kantovi.map((k) => (
-          <div key={k.id} className="red-stavka">
+          <div key={k.id} className="red-stavka" style={{ alignItems: 'center' }}>
             <span>{k.naziv}</span>
-            <span className="red-stavka__vrednost">{k.debljina} mm</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <input
+                type="number"
+                inputMode="decimal"
+                placeholder="—"
+                aria-label={`${k.naziv} — ${t('Cena po m')}`}
+                style={{ width: 96, minHeight: 36 }}
+                value={k.cenaPoM ?? ''}
+                onChange={(e) =>
+                  izmeniKant(k.id, {
+                    cenaPoM: e.target.value === '' ? null : Number(e.target.value) || 0,
+                  })
+                }
+              />
+              <span style={{ fontSize: 11, color: 'var(--nv-text-dim)' }}>RSD/m</span>
+            </span>
           </div>
         ))}
       </div>

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Deo, Kantovanje, Materijal, Polozaj, Projekat, Sklop } from '../types/domain';
+import type { Deo, Kant, Kantovanje, Materijal, Polozaj, Projekat, Sklop } from '../types/domain';
 import { PODRAZUMEVAN_POLOZAJ, PRAZNO_KANTOVANJE } from '../types/domain';
 import { noviProjekat } from '../data/defaults';
 import { uid } from '../lib/uid';
@@ -13,6 +13,8 @@ interface ProjectState {
 
   dodajSklop: (naziv: string) => string;
   izmeniSklop: (id: string, izmena: Partial<Sklop>) => void;
+  /** Kopira sklop zajedno sa svim njegovim delovima i njihovim položajima. */
+  duplirajSklop: (id: string) => string | null;
   obrisiSklop: (id: string) => void;
 
   dodajDeo: (deo?: Partial<Deo>) => string;
@@ -27,6 +29,8 @@ interface ProjectState {
 
   /** Zaključava teksturu svim delovima na materijalima sa teksturom. */
   zakljucajTeksturuGdeTreba: () => void;
+
+  izmeniKant: (id: string, izmena: Partial<Kant>) => void;
 
   dodajMaterijal: () => string;
   izmeniMaterijal: (id: string, izmena: Partial<Materijal>) => void;
@@ -67,6 +71,34 @@ export const useProjectStore = create<ProjectState>()(
             sklopovi: s.projekat.sklopovi.map((k) => (k.id === id ? { ...k, ...izmena } : k)),
           },
         })),
+
+      duplirajSklop: (id) => {
+        const izvor = get().projekat.sklopovi.find((s) => s.id === id);
+        if (!izvor) return null;
+        const noviId = uid('skl');
+        set((s) => {
+          const kopijeDelova = s.projekat.delovi
+            .filter((d) => d.sklopId === id)
+            .map((d) => ({
+              ...d,
+              id: uid('deo'),
+              sklopId: noviId,
+              kant: { ...d.kant },
+              polozaj: d.polozaj ? { ...d.polozaj } : null,
+            }));
+          const mesto = s.projekat.sklopovi.findIndex((x) => x.id === id);
+          const sklopovi = [...s.projekat.sklopovi];
+          sklopovi.splice(mesto + 1, 0, { ...izvor, id: noviId, naziv: `${izvor.naziv} (kopija)` });
+          return {
+            projekat: {
+              ...s.projekat,
+              sklopovi,
+              delovi: [...s.projekat.delovi, ...kopijeDelova],
+            },
+          };
+        });
+        return noviId;
+      },
 
       /** Brisanje sklopa ne briše delove — vraća ih u „bez sklopa". */
       obrisiSklop: (id) =>
@@ -155,6 +187,14 @@ export const useProjectStore = create<ProjectState>()(
               const m = s.projekat.materijali.find((x) => x.id === d.materijalId);
               return m?.imaTeksturu ? { ...d, teksturaZakljucana: true } : d;
             }),
+          },
+        })),
+
+      izmeniKant: (id, izmena) =>
+        set((s) => ({
+          projekat: {
+            ...s.projekat,
+            kantovi: s.projekat.kantovi.map((k) => (k.id === id ? { ...k, ...izmena } : k)),
           },
         })),
 

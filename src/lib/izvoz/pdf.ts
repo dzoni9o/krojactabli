@@ -3,6 +3,7 @@ import type autoTableFn from 'jspdf-autotable';
 import type { Projekat } from '../../types/domain';
 import type { RasporedMaterijala, TablaPlan } from '../nesting/tipovi';
 import { broj, rezimeProjekta } from '../obracun';
+import { dinara, obracunajCenu } from '../cena';
 import { redoviListe } from './podaci';
 
 const MARGINA = 12;
@@ -114,6 +115,27 @@ export async function napraviPdf(
     },
     margin: { left: MARGINA, right: MARGINA },
   });
+
+  /* ── Cena ─────────────────────────────────────────────── */
+  const obracun = obracunajCenu(projekat, rasporedi);
+  if (obracun.stavke.length > 0) {
+    autoTable(doc, {
+      startY: krajTabele(doc) + 6,
+      head: [['Stavka', 'Količina', 'Iznos (RSD)']],
+      body: [
+        ...obracun.stavke.map((s) => [s.naziv, s.kolicina, dinara(s.iznos)]),
+        ['Ukupno bez PDV-a', '', dinara(obracun.ukupno)],
+      ],
+      theme: 'grid',
+      styles: { font: 'Roboto', fontSize: 9, cellPadding: 2, textColor: CRNA },
+      headStyles: { font: 'Roboto', fontStyle: 'bold', fillColor: [38, 38, 38], textColor: 255 },
+      columnStyles: {
+        1: { halign: 'right', cellWidth: 32 },
+        2: { halign: 'right', cellWidth: 32, fontStyle: 'bold' },
+      },
+      margin: { left: MARGINA, right: MARGINA },
+    });
+  }
 
   /* ── Krojna lista ─────────────────────────────────────── */
   const posleSume = krajTabele(doc);

@@ -55,6 +55,7 @@ function Grupa({ sklop, delovi }: { sklop: Sklop | null; delovi: Deo[] }) {
   const reci = useReci();
   const dodajDeo = useProjectStore((s) => s.dodajDeo);
   const obrisiSklop = useProjectStore((s) => s.obrisiSklop);
+  const duplirajSklop = useProjectStore((s) => s.duplirajSklop);
   const otvoriDeo = useUiStore((s) => s.otvoriDeo);
 
   if (!sklop && delovi.length === 0) return null;
@@ -75,14 +76,25 @@ function Grupa({ sklop, delovi }: { sklop: Sklop | null; delovi: Deo[] }) {
           +
         </button>
         {sklop && (
-          <button
-            className="nv-btn nv-btn--ghost nv-btn--danger"
-            style={{ minHeight: 32, padding: '0 10px' }}
-            onClick={() => obrisiSklop(sklop.id)}
-            aria-label={t('Obriši')}
-          >
-            ✕
-          </button>
+          <>
+            <button
+              className="nv-btn nv-btn--ghost"
+              style={{ minHeight: 32, padding: '0 10px' }}
+              onClick={() => duplirajSklop(sklop.id)}
+              aria-label={t('Dupliraj sklop')}
+              title={t('Dupliraj sklop')}
+            >
+              ⧉
+            </button>
+            <button
+              className="nv-btn nv-btn--ghost nv-btn--danger"
+              style={{ minHeight: 32, padding: '0 10px' }}
+              onClick={() => obrisiSklop(sklop.id)}
+              aria-label={t('Obriši')}
+            >
+              ✕
+            </button>
+          </>
         )}
       </div>
       {delovi.map((d) => (

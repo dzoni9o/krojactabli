@@ -5,6 +5,7 @@ import { useRaspored } from '../hooks/useRaspored';
 import { TablaSvg } from '../components/TablaSvg';
 import { Izvoz } from '../components/Izvoz';
 import { broj } from '../lib/obracun';
+import { dinara, obracunajCenu } from '../lib/cena';
 import { delovaBezZakljucaneTeksture } from '../lib/nesting/pripremi';
 import type { RasporedMaterijala } from '../lib/nesting/tipovi';
 
@@ -84,6 +85,42 @@ function Materijal({ raspored }: { raspored: RasporedMaterijala }) {
   );
 }
 
+function Cena({ rasporedi }: { rasporedi: RasporedMaterijala[] }) {
+  const projekat = useProjectStore((s) => s.projekat);
+  const t = useT();
+  const obracun = obracunajCenu(projekat, rasporedi);
+  if (obracun.stavke.length === 0) return null;
+
+  return (
+    <>
+      <div className="sec-naslov">
+        <h2>{t('Cena')}</h2>
+        <span className="sec-naslov__crta" />
+      </div>
+      <div className="card">
+        {obracun.stavke.map((s, i) => (
+          <div key={i} className="red-stavka">
+            <span>
+              {s.naziv}
+              <span style={{ color: 'var(--nv-text-faint)' }}> · {s.kolicina}</span>
+            </span>
+            <span className="red-stavka__vrednost">{dinara(s.iznos)}</span>
+          </div>
+        ))}
+        <div className="red-stavka" style={{ borderTop: '1px solid var(--nv-line-strong)' }}>
+          <strong>{t('Ukupno bez PDV-a')}</strong>
+          <span className="red-stavka__vrednost">{dinara(obracun.ukupno)} RSD</span>
+        </div>
+      </div>
+      {obracun.nepotpuno && (
+        <p style={{ fontSize: 11, color: 'var(--nv-text-faint)', marginTop: -6 }}>
+          {t('Fali cena za neke stavke')}
+        </p>
+      )}
+    </>
+  );
+}
+
 export function RasporedScreen() {
   const projekat = useProjectStore((s) => s.projekat);
   const zakljucaj = useProjectStore((s) => s.zakljucajTeksturuGdeTreba);
@@ -154,6 +191,8 @@ export function RasporedScreen() {
       {rasporedi?.map((r) => (
         <Materijal key={r.materijalId} raspored={r} />
       ))}
+
+      {rasporedi && rasporedi.length > 0 && <Cena rasporedi={rasporedi} />}
 
       {rasporedi && rasporedi.length > 0 && (
         <>
