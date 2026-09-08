@@ -746,3 +746,178 @@
     width: 380px;
   }
 }
+
+
+/* ── Prostor: velika scena ──────────────────────────────── */
+.scena--velika {
+  height: 52vh;
+  min-height: 300px;
+}
+
+@media (min-width: 720px) {
+  .scena--velika {
+    height: 58vh;
+  }
+}
+
+.scena__alatke {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.scena__alat {
+  min-width: 40px;
+  height: 34px;
+  padding: 0 8px;
+  border: 1px solid var(--nv-line-strong);
+  border-radius: var(--nv-r);
+  background: rgba(10, 10, 10, 0.72);
+  color: var(--nv-text-dim);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+}
+
+.scena__alat--on {
+  border-color: var(--nv-accent);
+  color: var(--nv-accent);
+}
+
+.scena__uputstvo {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 32px;
+  text-align: center;
+  pointer-events: none;
+}
+
+.scena__uputstvo strong {
+  font-family: var(--nv-display);
+  font-size: 16px;
+}
+
+.scena__uputstvo span {
+  font-size: 12px;
+  color: var(--nv-text-dim);
+  max-width: 260px;
+}
+
+/* ── Katalog elemenata ──────────────────────────────────── */
+.katalog {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-bottom: 14px;
+  scrollbar-width: none;
+}
+
+.katalog::-webkit-scrollbar {
+  display: none;
+}
+
+.katalog__stavka {
+  flex: none;
+  width: 104px;
+  padding: 10px 8px;
+  border: 1px solid var(--nv-line-strong);
+  border-radius: var(--nv-r-lg);
+  background: var(--nv-surface);
+  text-align: center;
+  transition: border-color 0.12s, background 0.12s;
+}
+
+.katalog__stavka:hover {
+  border-color: var(--nv-accent);
+}
+
+.katalog__stavka:active {
+  background: var(--nv-surface-2);
+}
+
+.katalog__ikona {
+  display: block;
+  font-size: 20px;
+  color: var(--nv-accent);
+  line-height: 1.2;
+}
+
+.katalog__naziv {
+  display: block;
+  font-size: 11px;
+  margin-top: 4px;
+  line-height: 1.25;
+}
+
+.katalog__mera {
+  display: block;
+  font-size: 9px;
+  color: var(--nv-text-faint);
+  margin-top: 3px;
+}
+
+/* ── Brojač (police, fioke, krila) ──────────────────────── */
+.brojac {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--nv-line-strong);
+  border-radius: var(--nv-r);
+  overflow: hidden;
+  min-height: var(--nv-tap);
+}
+
+.brojac button {
+  width: 42px;
+  align-self: stretch;
+  background: var(--nv-surface-2);
+  font-size: 18px;
+  color: var(--nv-text);
+}
+
+.brojac button:disabled {
+  color: var(--nv-text-faint);
+}
+
+.brojac__broj {
+  flex: 1;
+  text-align: center;
+  font-weight: 700;
+}
+
+/* ── Naziv elementa kao naslov ──────────────────────────── */
+.naslov-unos {
+  font-family: var(--nv-display);
+  font-weight: 700;
+  font-size: 15px;
+  min-height: 36px;
+  padding: 0 8px;
+  background: transparent;
+  border-color: transparent;
+}
+
+.naslov-unos:hover {
+  border-color: var(--nv-line-strong);
+}
+
+/* ── Prekidač za prostoriju ─────────────────────────────── */
+.soba__prekidac {
+  width: 100%;
+  min-height: var(--nv-tap);
+  padding: 0 12px;
+  border: 1px solid var(--nv-line);
+  border-radius: var(--nv-r);
+  background: var(--nv-surface);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--nv-text-dim);
+  text-align: left;
+  margin-bottom: 12px;
+}

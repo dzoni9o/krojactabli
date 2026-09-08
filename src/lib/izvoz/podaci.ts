@@ -1,9 +1,9 @@
-import type { Deo, Projekat } from '../../types/domain';
+import type { Materijal, Projekat, StavkaListe } from '../../types/domain';
 import { IVICE } from '../../types/domain';
 
 /** Jedan red krojne liste — isti podaci idu i u PDF i u CSV. */
 export interface RedListe {
-  sklop: string;
+  poreklo: string;
   naziv: string;
   materijal: string;
   duzina: number;
@@ -14,26 +14,27 @@ export interface RedListe {
   napomena: string;
 }
 
-export function redoviListe(projekat: Projekat): RedListe[] {
-  const imeSklopa = (deo: Deo) =>
-    projekat.sklopovi.find((s) => s.id === deo.sklopId)?.naziv ?? '';
-
-  return projekat.delovi.map((deo) => {
+export function redoviListe(
+  stavke: StavkaListe[],
+  materijali: Materijal[],
+  kantovi: Projekat['kantovi'],
+): RedListe[] {
+  return stavke.map((stavka) => {
     const kant: Record<string, string> = {};
     for (const ivica of IVICE) {
-      const k = projekat.kantovi.find((x) => x.id === deo.kant[ivica]);
+      const k = kantovi.find((x) => x.id === stavka.kant[ivica]);
       kant[ivica] = k ? k.debljina.toLocaleString('sr-RS') : '';
     }
     return {
-      sklop: imeSklopa(deo),
-      naziv: deo.naziv || '—',
-      materijal: projekat.materijali.find((m) => m.id === deo.materijalId)?.naziv ?? '—',
-      duzina: deo.duzina,
-      sirina: deo.sirina,
-      kom: deo.kom,
+      poreklo: stavka.poreklo,
+      naziv: stavka.naziv || '—',
+      materijal: materijali.find((m) => m.id === stavka.materijalId)?.naziv ?? '—',
+      duzina: stavka.duzina,
+      sirina: stavka.sirina,
+      kom: stavka.kom,
       kant,
-      tekstura: deo.teksturaZakljucana,
-      napomena: deo.napomena,
+      tekstura: stavka.teksturaZakljucana,
+      napomena: stavka.napomena,
     };
   });
 }

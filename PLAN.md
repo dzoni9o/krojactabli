@@ -4,23 +4,24 @@
 > prostoru u gotov komad, a aplikacija izbacuje krojnu listu i raspored rezova
 > po tablama.
 
-**Status:** planiranje · **Verzija plana:** 0.2 · **Datum:** 2026-09-07
+**Status:** planiranje · **Verzija plana:** 0.3 · **Datum:** 2026-09-07
 
 ---
 
 ## 1. Šta je ovo
 
-Radionica/majstor unosi delove nameštaja (bokovi, pod, plafon, police, leđa,
-frontovi), slaže ih u 3D prostoru da proveri da li se sklop poklapa, i dobija:
+Majstor zada prostoriju, ubaci gotove elemente iz kataloga (donji, viseći,
+plakar, fioke, polica), prstom ih razmesti po sobi — i dobija:
 
-1. **Krojnu listu** — tabelu delova sa merama, količinom, materijalom i kantovanjem
+1. **Krojnu listu** — koja se pravi SAMA iz elemenata, sa merama, količinom,
+   materijalom i kantovanjem
 2. **Raspored po tablama** — kako se delovi seku iz table 2800×2070, sa iskorišćenjem
 3. **PDF/CSV izlaz** — ono što se nosi u radionicu ili šalje dobavljaču ploče
 
-### Šta NIJE (bar ne u v1)
+### Šta NIJE
 - Nije CAD. Nije zamena za SketchUp/pCon.
-- Nema parametarskih kataloga elemenata („donji kuhinjski 600×720×560 → generiši delove").
-  Unos je ručni, deo po deo. *(Katalog je kandidat za v2 — vidi §9.)*
+- Nema okova: vođice, šarke, konfirmati. Kod fioka se generišu **samo frontovi**,
+  jer kutija fioke zavisi od vođica.
 - Nema CNC nestinga proizvoljnih oblika. Samo pravougaoni delovi, guillotine rez.
 
 ---
@@ -29,9 +30,11 @@ frontovi), slaže ih u 3D prostoru da proveri da li se sklop poklapa, i dobija:
 
 | Odluka | Izbor | Posledica |
 |---|---|---|
-| Radni prostor | **3D sklop gore, raspored po tablama dole** | Dva pogleda, jedan izvor podataka |
+| Šta se stavlja u prostor | **Ceo element iz kataloga** | Zadaš 600×720×560 → dobiješ gotov korpus. Delovi se RAČUNAJU, ne unose |
+| Prostor | **Soba sa zidovima** | Elementi se lepe za zid i jedan za drugi; zid ih zaustavlja |
+| Radni prostor | **3D soba, pa krojna lista, pa raspored po tablama** | Jedan izvor podataka: elementi |
 | Mašina | **Formatna testera / dobavljač** | Nesting MORA biti guillotine (rez kroz celu tablu, s kraja na kraj) |
-| Unos delova | **Ručno, deo po deo** | Nema kataloga u v1; brži start, jednostavniji model |
+| Unos delova | **Katalog tipova** | Donji, fioke, viseći, plakar, polica. Ručni unos ostaje samo za dodatke (radna ploča, maska, sokla) |
 | Obim projekta | **Ceo prostor** (kuhinja, soba, predsoblje) | Više sklopova u projektu; nesting spaja delove SVIH sklopova po materijalu |
 | Tabla | **2800 × 2070** | Default; podesivo po materijalu |
 | Kerf (rez) | **3,2 mm** | Default; podesivo |
@@ -46,42 +49,51 @@ ići od ivice do ivice ostatka table. Ovo je tvrdo ograničenje algoritma, ne op
 ## 3. Domenski model
 
 ```
-Projekat (kuhinja / soba / predsoblje — ceo prostor)
-├── Materijali[]        naziv, dekor, debljina, dim. table, kerf, trim, ima_teksturu, cena/m²
-├── Kantovi[]           naziv, debljina (0.4 / 1 / 2 mm), boja, cena/m
-├── Delovi[]            ← srce aplikacije
-│     ├── naziv         "bok levi", "polica"
-│     ├── materijalId
-│     ├── L × W         dužina (u smeru teksture) × širina
-│     ├── kom
-│     ├── kantovanje    { L1, L2, W1, W2 } → kantId | prazno
-│     ├── tekstura      zaključana (ne sme rotacija 90°) | slobodna
-│     └── transform     pozicija + orijentacija u 3D sklopu
-├── Sklopovi[]          elementi u prostoru (donji element, viseći, plakar...)
-│     ├── naziv, gabarit (Š × V × D)
-│     └── delovi pripadaju sklopu
-└── Plan rezanja[]      rezultat nestinga, po materijalu
+Projekat (kuhinja / soba / predsoblje)
+├── Prostorija         širina × dužina × visina — zidovi za koje se lepi
+├── Materijali[]       naziv, debljina, tabla, kerf, obrez, tekstura, cena/m²
+├── Kantovi[]          debljina (0,4 / 1 / 2 mm), cena/m
+├── Elementi[]         ← GLAVNI SADRŽAJ
+│     ├── tip          donji | fioke | viseći | plakar | polica
+│     ├── mere         širina × visina × dubina korpusa
+│     ├── mesto        x, z u sobi · podizanje od poda · okret 0/90/180/270
+│     ├── opcije       broj polica, fioka, krila; ima li front i leđa
+│     └── materijali   korpus, front, leđa (svaki svoj)
+└── Dodatni delovi[]   ručno, za ono što ne ispadne iz elementa
 ```
 
-### 3.1 Kantovanje ne menja meru
+### 3.1 Delovi se ne unose — oni ispadaju
+
+Iz elementa se računaju sve ploče, sa merama i mestom u sobi. Sklop korpusa je
+jedan i isti, i to je jedino mesto u kodu gde se o njemu odlučuje
+(`src/lib/generisi.ts`):
+
+- **bokovi** idu spolja, preko cele visine i dubine
+- **pod i plafon** staju između bokova → `širina − 2 × debljina`
+- **police** su uvučene 20 mm od prednje ivice, i za debljinu leđa otpozadi
+- **leđa** se uglavljuju unutar korpusa
+- **front** prekriva korpus sa **2 mm zazora sa svake strane** → korpus 600×720
+  daje front 596×716; fioke ga dele po visini (razmak 4 mm), krila po širini
+
+Kantovanje ide po ulozi, ne po ploči: korpus dobija tanji kant na prednju
+ivicu, front deblji unaokolo. Majstor ne klikće kantovanje na svakoj ploči.
+
+### 3.2 Kantovanje ne menja meru
 Kantarica prefrezuje ivicu ploče pre lepljenja kanta, pa kant vraća meru na
-nominalnu. **Mera koju uneseš je i mera reza.** Nema preračunavanja, nema
-„gotova vs. sirova mera" — jedan broj, i na testeri i u sklopu.
+nominalnu. **Mera u listi je i mera reza.**
 
-Kantovanje se i dalje evidentira po ivicama (L1/L2/W1/W2) jer treba za:
-- **metre kanta** po tipu (nabavka, cena)
-- **radni nalog** — koja ivica se kantuje na kojoj ploči
+Kantovanje se evidentira po ivicama (L1/L2/W1/W2) jer treba za metre kanta
+(nabavka, cena) i za radni nalog.
 
-*(Napomena za v2: radionice koje kantuju ručno, bez prefrezovanja, rade drugačije.
-Ako se aplikacija bude prodavala, dodati opciono podešavanje „oduzmi debljinu
-kanta od mere". Za nas — ne treba.)*
+### 3.3 Lepljenje u prostoru
 
-### 3.2 Debljina ploče u sklopu
-Kad se u 3D-u ploča prisloni uz drugu, aplikacija zna debljinu i može da
-**upozori** da mera ne štima (npr. korpus 600 spolja, a pod unesen kao 600 umesto
-564). Ne menja unos automatski — samo javlja. Ručni unos ostaje ručni.
+Vučenje prstom ne traži preciznost: kad priđeš na **9 cm**, element sedne uz
+zid ili uz komšiju — bez zazora i bez preklapanja. Zid ga zaustavlja, ne može
+da odleti van sobe. Kad ništa nije blizu, pozicija se zaokruži na centimetar.
 
----
+Prijavljuje se ono što se u glavi ne vidi: elementi koji zauzimaju isti
+prostor, i elementi koji vire iz sobe. Viseći iznad donjeg nije preklapanje —
+provera gleda i visinu.
 
 ## 4. Nesting — guillotine algoritam
 
@@ -112,23 +124,19 @@ kombinacijama split-pravila, zadrži najbolji rezultat po iskorišćenju.
 
 ---
 
-## 5. 3D sklop — kako da ne bude mučenje na telefonu
+## 5. 3D na telefonu
 
-Slobodno prevlačenje ploče u 3D prostoru na telefonu je loše iskustvo. Predlog:
+Prst je debeo, ekran mali, a majstor stoji na gradilištu. Zato:
 
-**Gabarit prvo.** Definišeš spoljnu kutiju korpusa (npr. 600 × 720 × 560).
-Gabarit daje 6 jasnih referenci (levo, desno, gore, dole, napred, nazad).
-
-**Postavljanje relacijom, ne prevlačenjem:**
-- „postavi UZ levi bok, poravnato GORE i NAZAD"
-- snap na lica postojećih ploča i na stranice gabarita
-- `Dupliraj` / `Preslikaj` (levi bok → desni bok jednim klikom)
-
-3D je pri tom **provera**, ne crtanje: vidiš da li se sklop zatvara, gde fali
-ploča, gde se dve ploče preklapaju. Prevlačenje ostaje moguće na desktopu,
-sa snapom na 1 mm.
-
----
+- **Dodirni element pa ga vuci po podu.** Ne postoji režim, ne postoji ručica
+  za pomeranje. Element ide tamo gde ide prst.
+- **Scena se ne vrti dok vučeš.** OrbitControls sluša isti pokret, pa se
+  zaustavlja čim dodir krene sa ploče.
+- **Tlocrt je strm kosi pogled, ne pogled pravo naniže.** Kamera koja gleda
+  tačno dole nema jednoznačnu orijentaciju — vučeš desno, element ode levo.
+- **Kamera kadrira nameštaj**, ne praznu sobu. Prazna soba od 4 × 3 m u kadru
+  pretvara element u tačku.
+- **Okretanje je dugme**, ne gest. Gest za rotaciju na dodiru se ne pogađa.
 
 ## 6. Izlazi
 
@@ -171,10 +179,10 @@ Svaka faza se završava demo snimkom i testiranjem sa ekipom.
 | Faza | Sadržaj | Rezultat |
 |---|---|---|
 | **F0** | Skelet: Vite + TS + Zustand + dizajn sistem + rute + i18n | Prazna ali prava aplikacija |
-| **F1** | Materijali, kantovi, unos delova, gotova/rez mera, lokalna persistencija | Digitalna tabela delova |
+| **F1** | Materijali, kantovi, krojna lista, lokalna persistencija | Lista koja se sama pravi |
 | **F2** | Nesting engine (guillotine + kerf + trim + tekstura) u workeru + SVG prikaz | Vidiš raspored i iskorišćenje |
 | **F3** | PDF + CSV izlaz, sumarno, kantovanje u metrima | **Upotrebljiv proizvod → demo #1** |
-| **F4** | 3D sklop: gabarit, snap poravnanje, dupliraj/preslikaj, provera sklopa | **demo #2** |
+| **F4** | 3D soba: katalog elemenata, vučenje sa lepljenjem, provera prostora | **demo #2** |
 | **F5** | Supabase: nalozi, projekti, sync offline→online, deljiv link | Radi na više uređaja |
 | **F6** | Optimizacije: randomized restart, ostaci, cene, redosled rezova | Ozbiljna alatka |
 
@@ -186,9 +194,10 @@ može dati povratnu informaciju. 3D dolazi na gotov, testiran temelj.
 
 ## 9. Otvorena pitanja / kasnije
 
-- **Katalog parametarskih elemenata** (kuhinjski donji/gornji, plakar, fioke) —
-  najveće ubrzanje, ali tek kad ručni unos radi savršeno
-- **Okovi i fiorke** — bušenje, konfirmati, vođice? Verovatno van opsega.
+- **Kutije fioka** — zavise od vođica; sada se generišu samo frontovi
+- **Okovi** — bušenje, konfirmati, šarke. Verovatno van opsega.
+- **Ugaoni elementi** i radna ploča kao tip
+- **Više soba u projektu**
 - **Cenovnik ploča** — ručno ili uvoz od dobavljača
 - **Odnos prema `tabla.nikvolt.com`** — deli isti PDF sloj, može zajednička biblioteka
 

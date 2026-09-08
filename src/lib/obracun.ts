@@ -1,22 +1,22 @@
-import type { Deo, Kant, Materijal, Projekat } from '../types/domain';
+import type { Kant, Materijal, StavkaListe } from '../types/domain';
 import { IVICE } from '../types/domain';
 
-/** Površina jednog dela × komada, u m². */
-export function povrsinaDela(deo: Deo): number {
-  return (deo.duzina * deo.sirina * deo.kom) / 1_000_000;
+/** Površina jedne stavke × komada, u m². */
+export function povrsinaStavke(s: StavkaListe): number {
+  return (s.duzina * s.sirina * s.kom) / 1_000_000;
 }
 
 /**
  * Metri kanta po ivici. L1/L2 idu po dužini, W1/W2 po širini.
  * Kant ne menja meru dela — samo se troši u metrima (PLAN.md §3.1).
  */
-export function metriKantaDela(deo: Deo): Map<string, number> {
+export function metriKantaStavke(stavka: StavkaListe): Map<string, number> {
   const po = new Map<string, number>();
   for (const ivica of IVICE) {
-    const kantId = deo.kant[ivica];
+    const kantId = stavka.kant[ivica];
     if (!kantId) continue;
-    const duzinaIvice = ivica === 'L1' || ivica === 'L2' ? deo.duzina : deo.sirina;
-    const metara = (duzinaIvice * deo.kom) / 1000;
+    const duzinaIvice = ivica === 'L1' || ivica === 'L2' ? stavka.duzina : stavka.sirina;
+    const metara = (duzinaIvice * stavka.kom) / 1000;
     po.set(kantId, (po.get(kantId) ?? 0) + metara);
   }
   return po;
@@ -41,32 +41,36 @@ export interface Rezime {
   poKantu: StavkaKanta[];
 }
 
-export function rezimeProjekta(projekat: Projekat): Rezime {
+export function rezimeStavki(
+  stavke: StavkaListe[],
+  materijali: Materijal[],
+  kantovi: Kant[],
+): Rezime {
   const poMat = new Map<string, StavkaMaterijala>();
   const poKant = new Map<string, number>();
 
-  for (const deo of projekat.delovi) {
-    const materijal = projekat.materijali.find((m) => m.id === deo.materijalId);
+  for (const stavka of stavke) {
+    const materijal = materijali.find((m) => m.id === stavka.materijalId);
     if (materijal) {
-      const stavka = poMat.get(materijal.id) ?? { materijal, komada: 0, m2: 0 };
-      stavka.komada += deo.kom;
-      stavka.m2 += povrsinaDela(deo);
-      poMat.set(materijal.id, stavka);
+      const red = poMat.get(materijal.id) ?? { materijal, komada: 0, m2: 0 };
+      red.komada += stavka.kom;
+      red.m2 += povrsinaStavke(stavka);
+      poMat.set(materijal.id, red);
     }
-    for (const [kantId, metara] of metriKantaDela(deo)) {
+    for (const [kantId, metara] of metriKantaStavke(stavka)) {
       poKant.set(kantId, (poKant.get(kantId) ?? 0) + metara);
     }
   }
 
   const poKantu: StavkaKanta[] = [];
   for (const [kantId, metara] of poKant) {
-    const kant = projekat.kantovi.find((k) => k.id === kantId);
+    const kant = kantovi.find((k) => k.id === kantId);
     if (kant) poKantu.push({ kant, metara });
   }
 
   return {
-    ukupnoDelova: projekat.delovi.length,
-    ukupnoKomada: projekat.delovi.reduce((z, d) => z + d.kom, 0),
+    ukupnoDelova: stavke.length,
+    ukupnoKomada: stavke.reduce((z, s) => z + s.kom, 0),
     ukupnoM2: [...poMat.values()].reduce((z, s) => z + s.m2, 0),
     poMaterijalu: [...poMat.values()],
     poKantu,

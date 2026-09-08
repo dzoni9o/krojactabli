@@ -37,7 +37,7 @@ export function DeoIzmena({ deoId }: { deoId: string }) {
 
   return (
     <Fioka
-      naslov={nacrt.naziv || t('Novi deo')}
+      naslov={nacrt.naziv || t('Dodatni deo')}
       onZatvori={() => zatvori(null)}
       podnozje={
         <>
@@ -57,19 +57,6 @@ export function DeoIzmena({ deoId }: { deoId: string }) {
             placeholder="bok levi"
             onChange={(e) => promeni('naziv', e.target.value)}
           />
-        </Polje>
-        <Polje oznaka={t('Sklop')}>
-          <select
-            value={nacrt.sklopId ?? ''}
-            onChange={(e) => promeni('sklopId', e.target.value || null)}
-          >
-            <option value="">{t('Bez sklopa')}</option>
-            {projekat.sklopovi.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.naziv}
-              </option>
-            ))}
-          </select>
         </Polje>
       </div>
 

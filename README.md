@@ -10,10 +10,10 @@ Plan i domenske odluke: **[PLAN.md](./PLAN.md)**
 | Faza | Sadržaj | Stanje |
 |---|---|---|
 | F0 | Skelet: Vite + React + TS + Zustand, NikVolt dizajn, i18n sr/en | ✅ |
-| F1 | Materijali, kantovanje, unos delova, sklopovi, lokalna persistencija | ✅ |
+| F1 | Materijali, kantovanje, krojna lista, lokalna persistencija | ✅ |
 | F2 | Nesting (guillotine + kerf + obrez + tekstura) i prikaz tabli | ✅ |
 | F3 | PDF i CSV izlaz | ✅ |
-| F4 | 3D sklapanje korpusa | ✅ |
+| F4 | 3D soba: katalog elemenata, vučenje sa lepljenjem | ✅ |
 | PWA | Rad bez mreže, dodavanje na početni ekran | ✅ |
 | F5 | Supabase sync (offline → online) | — |
 
@@ -28,8 +28,9 @@ npm run typecheck
 
 ## Šta već radi
 
-- unos delova sa kantovanjem po ivicama, grupisanih u sklopove
-- **dupliranje sklopa** sa svim delovima — cela kuhinja iz jednog elementa
+- **3D soba**: katalog elemenata (donji, fioke, viseći, plakar, polica),
+  vučenje prstom po podu, lepljenje za zid i za komšiju, zid zaustavlja
+- **krojna lista se pravi sama** iz elemenata — ne unosi se rukom
 - nesting po materijalu preko svih sklopova, sa iskorišćenjem i ostacima
 - 3D provera korpusa: preklapanja i delovi koji vire iz gabarita
 - PDF krojna lista sa crtežima tabli, CSV za dobavljača
@@ -55,8 +56,11 @@ Na telefonu: otvori u browseru → „Dodaj na početni ekran".
 - **Projekat je ceo prostor** (kuhinja, soba…), sa više sklopova. Nesting spaja
   delove svih sklopova po materijalu.
 - Default-i: tabla **2800 × 2070**, rez **3,2 mm**, obrez ivica **10 mm**.
-- **Položaj u sklopu je poravnanje uz gabarit + pomak**, ne apsolutna koordinata —
-  kad se gabarit promeni, delovi ga prate.
+- **Delovi se ne unose — ispadaju iz elementa.** Sklop korpusa je opisan na
+  jednom mestu (`src/lib/generisi.ts`): bokovi spolja, pod i plafon između njih,
+  leđa uglavljena unutra, front sa 2 mm zazora sa svake strane.
+- **Vučenje ne traži preciznost**: na 9 cm od zida ili komšije element sam sedne
+  na mesto; zid ga zaustavlja da ne odleti iz sobe.
 
 ## Struktura
 
@@ -67,7 +71,9 @@ src/
   lib/obracun.ts      površine, metri kanta, rezime projekta
   lib/nesting/        guillotine engine + Web Worker
   lib/izvoz/          PDF (jsPDF) i CSV, sa ugrađenim fontom za srpska slova
-  lib/sklop.ts        položaj delova u prostoru i provera sklopa
+  lib/generisi.ts     element → delovi (mere, kantovanje, mesto u sobi)
+  lib/prostor.ts      lepljenje za zid i komšiju, provera prostora
+  lib/lista.ts        krojna lista: generisano + ručno dodato
   store/              Zustand: projekat (persist) + stanje UI-ja
   components/         Fioka, KantIzbor, Prekidac, TabBar, Polje
   screens/            Delovi, Materijali, izmena dela, placeholderi

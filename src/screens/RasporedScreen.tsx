@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useProjectStore } from '../store/useProjectStore';
 import { useReci, useT } from '../i18n';
 import { useRaspored } from '../hooks/useRaspored';
@@ -7,6 +7,7 @@ import { Izvoz } from '../components/Izvoz';
 import { broj } from '../lib/obracun';
 import { dinara, obracunajCenu } from '../lib/cena';
 import { delovaBezZakljucaneTeksture } from '../lib/nesting/pripremi';
+import { sazmiStavke, stavkeListe } from '../lib/lista';
 import type { RasporedMaterijala } from '../lib/nesting/tipovi';
 
 function Materijal({ raspored }: { raspored: RasporedMaterijala }) {
@@ -123,13 +124,17 @@ function Cena({ rasporedi }: { rasporedi: RasporedMaterijala[] }) {
 
 export function RasporedScreen() {
   const projekat = useProjectStore((s) => s.projekat);
-  const zakljucaj = useProjectStore((s) => s.zakljucajTeksturuGdeTreba);
   const t = useT();
   const reci = useReci();
-  const { racuna, napredak, rasporedi, trajanjeMs, greska, izracunaj } = useRaspored(projekat);
 
-  const imaDelova = projekat.delovi.some((d) => d.duzina > 0 && d.sirina > 0);
-  const bezZakljucane = delovaBezZakljucaneTeksture(projekat);
+  const stavke = useMemo(() => sazmiStavke(stavkeListe(projekat)), [projekat]);
+  const { racuna, napredak, rasporedi, trajanjeMs, greska, izracunaj } = useRaspored(
+    stavke,
+    projekat.materijali,
+  );
+
+  const imaDelova = stavke.some((d) => d.duzina > 0 && d.sirina > 0);
+  const bezZakljucane = delovaBezZakljucaneTeksture(stavke, projekat.materijali);
 
   // Prvi ulazak na ekran — odmah izračunaj, bez dodatnog klika.
   useEffect(() => {
@@ -174,17 +179,6 @@ export function RasporedScreen() {
             {t('na materijalu sa teksturom nije zaključano')}
           </strong>
           <p style={{ margin: '6px 0 0' }}>{t('Nesting sme da ih okrene — furnir ide poprečno.')}</p>
-          <div className="akcije">
-            <button
-              className="nv-btn"
-              onClick={() => {
-                zakljucaj();
-                izracunaj();
-              }}
-            >
-              {t('Zaključaj sve')}
-            </button>
-          </div>
         </div>
       )}
 

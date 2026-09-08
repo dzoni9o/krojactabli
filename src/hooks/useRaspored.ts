@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { Projekat } from '../types/domain';
+import type { Materijal, StavkaListe } from '../types/domain';
 import { pripremiPoslove } from '../lib/nesting/pripremi';
 import type { OdgovorRasporeda, ZahtevRasporeda } from '../lib/nesting/worker';
 import type { RasporedMaterijala } from '../lib/nesting/tipovi';
@@ -16,7 +16,7 @@ interface StanjeRasporeda {
  * Nesting ide u Web Worker — na 200 delova računanje traje dovoljno dugo
  * da bi blokiralo dodir na telefonu.
  */
-export function useRaspored(projekat: Projekat) {
+export function useRaspored(stavke: StavkaListe[], materijali: Materijal[]) {
   const [stanje, postaviStanje] = useState<StanjeRasporeda>({
     racuna: false,
     napredak: 0,
@@ -54,7 +54,7 @@ export function useRaspored(projekat: Projekat) {
   }, []);
 
   const izracunaj = useCallback(() => {
-    const poslovi = pripremiPoslove(projekat);
+    const poslovi = pripremiPoslove(stavke, materijali);
     if (poslovi.length === 0) {
       postaviStanje({
         racuna: false,
@@ -68,7 +68,7 @@ export function useRaspored(projekat: Projekat) {
     postaviStanje((s) => ({ ...s, racuna: true, napredak: 0, greska: null }));
     const zahtev: ZahtevRasporeda = { tip: 'racunaj', poslovi };
     workerRef.current?.postMessage(zahtev);
-  }, [projekat]);
+  }, [stavke, materijali]);
 
   return { ...stanje, izracunaj };
 }

@@ -1,6 +1,7 @@
 import type { Projekat } from '../types/domain';
 import type { RasporedMaterijala } from './nesting/tipovi';
-import { rezimeProjekta } from './obracun';
+import { rezimeStavki } from './obracun';
+import { stavkeListe } from './lista';
 
 export interface StavkaCene {
   naziv: string;
@@ -42,7 +43,8 @@ export function obracunajCenu(
     });
   }
 
-  for (const s of rezimeProjekta(projekat).poKantu) {
+  const rezime = rezimeStavki(stavkeListe(projekat), projekat.materijali, projekat.kantovi);
+  for (const s of rezime.poKantu) {
     if (s.kant.cenaPoM === null) {
       nepotpuno = true;
       continue;

@@ -2,9 +2,10 @@ import type { jsPDF } from 'jspdf';
 import type autoTableFn from 'jspdf-autotable';
 import type { Projekat } from '../../types/domain';
 import type { RasporedMaterijala, TablaPlan } from '../nesting/tipovi';
-import { broj, rezimeProjekta } from '../obracun';
+import { broj, rezimeStavki } from '../obracun';
 import { dinara, obracunajCenu } from '../cena';
 import { redoviListe } from './podaci';
+import { sazmiStavke, stavkeListe } from '../lista';
 
 const MARGINA = 12;
 /* Položena strana table: crtež levo, legenda u koloni desno. */
@@ -52,7 +53,8 @@ export async function napraviPdf(
   doc.addFont('Roboto-Bold.ttf', 'Roboto', 'bold');
   doc.setFont('Roboto', 'normal');
 
-  const rezime = rezimeProjekta(projekat);
+  const stavke = sazmiStavke(stavkeListe(projekat));
+  const rezime = rezimeStavki(stavke, projekat.materijali, projekat.kantovi);
 
   /* ── Naslovna ─────────────────────────────────────────── */
   let y = MARGINA + 4;
@@ -86,7 +88,7 @@ export async function napraviPdf(
   y += 7;
 
   /* ── Suma materijala ──────────────────────────────────── */
-  const sumaRedovi: string[][] = rezime.poMaterijalu.map((s) => {
+  const sumaRedovi: string[][] = rezime.poMaterijalu.map((s): string[] => {
     const r = rasporedi?.find((x) => x.materijalId === s.materijal.id);
     return [
       s.materijal.naziv,
@@ -147,10 +149,10 @@ export async function napraviPdf(
 
   autoTable(doc, {
     startY: posleSume + 13,
-    head: [['#', 'Sklop', 'Deo', 'Materijal', 'Dužina', 'Širina', 'Kom', 'L1', 'L2', 'W1', 'W2']],
-    body: redoviListe(projekat).map((r, i) => [
+    head: [['#', 'Element', 'Deo', 'Materijal', 'Dužina', 'Širina', 'Kom', 'L1', 'L2', 'W1', 'W2']],
+    body: redoviListe(stavke, projekat.materijali, projekat.kantovi).map((r, i) => [
       `${i + 1}`,
-      r.sklop,
+      r.poreklo,
       r.naziv + (r.tekstura ? ' *' : ''),
       r.materijal,
       `${r.duzina}`,

@@ -1,4 +1,4 @@
-import type { Projekat } from '../../types/domain';
+import type { Materijal, StavkaListe } from '../../types/domain';
 import type { Tabla, UlazniKomad } from './tipovi';
 
 export interface PosaoMaterijala {
@@ -11,12 +11,15 @@ export interface PosaoMaterijala {
  * Razlaže projekat u poslove po materijalu. Delovi svih sklopova se spajaju —
  * cela kuhinja se seče zajedno, ne element po element.
  */
-export function pripremiPoslove(projekat: Projekat): PosaoMaterijala[] {
+export function pripremiPoslove(
+  stavke: StavkaListe[],
+  materijali: Materijal[],
+): PosaoMaterijala[] {
   const poMaterijalu = new Map<string, PosaoMaterijala>();
 
-  for (const deo of projekat.delovi) {
+  for (const deo of stavke) {
     if (deo.duzina <= 0 || deo.sirina <= 0 || deo.kom <= 0) continue;
-    const materijal = projekat.materijali.find((m) => m.id === deo.materijalId);
+    const materijal = materijali.find((m) => m.id === deo.materijalId);
     if (!materijal) continue;
 
     let posao = poMaterijalu.get(materijal.id);
@@ -52,9 +55,12 @@ export function pripremiPoslove(projekat: Projekat): PosaoMaterijala[] {
  * Delovi na materijalu sa teksturom kojima rotacija nije zabranjena.
  * Nesting sme da ih okrene — a furnir onda ide poprečno.
  */
-export function delovaBezZakljucaneTeksture(projekat: Projekat): number {
-  return projekat.delovi.filter((d) => {
-    const m = projekat.materijali.find((x) => x.id === d.materijalId);
+export function delovaBezZakljucaneTeksture(
+  stavke: StavkaListe[],
+  materijali: Materijal[],
+): number {
+  return stavke.filter((d) => {
+    const m = materijali.find((x) => x.id === d.materijalId);
     return m?.imaTeksturu && !d.teksturaZakljucana;
   }).length;
 }

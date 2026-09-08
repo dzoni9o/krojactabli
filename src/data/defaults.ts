@@ -1,4 +1,5 @@
 import type { Kant, Materijal, Projekat } from '../types/domain';
+import { PODRAZUMEVANA_PROSTORIJA } from '../types/elementi';
 import { uid } from '../lib/uid';
 
 /** Potvrđeni default-i: tabla 2800 × 2070, kerf 3,2 mm, obrez 10 mm. */
@@ -53,7 +54,8 @@ export function noviProjekat(naziv = 'Novi projekat'): Projekat {
     datum: new Date().toISOString().slice(0, 10),
     materijali: podrazumevaniMaterijali(),
     kantovi: podrazumevaniKantovi(),
-    sklopovi: [],
+    prostorija: { ...PODRAZUMEVANA_PROSTORIJA },
+    elementi: [],
     delovi: [],
   };
 }

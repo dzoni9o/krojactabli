@@ -2,9 +2,9 @@ import { useT } from '../i18n';
 import { useUiStore, type Ekran } from '../store/useUiStore';
 
 const STAVKE: { id: Ekran; ikona: string; naziv: string }[] = [
+  { id: 'prostor', ikona: '◱', naziv: 'Prostor' },
   { id: 'delovi', ikona: '▤', naziv: 'Delovi' },
   { id: 'raspored', ikona: '▦', naziv: 'Raspored' },
-  { id: 'sklop', ikona: '◫', naziv: 'Sklop' },
   { id: 'materijali', ikona: '☰', naziv: 'Materijali' },
 ];
 

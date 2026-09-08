@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { Jezik } from '../i18n';
 
-export type Ekran = 'delovi' | 'raspored' | 'sklop' | 'materijali';
+export type Ekran = 'prostor' | 'delovi' | 'raspored' | 'materijali';
 
 interface UiState {
   ekran: Ekran;
@@ -18,7 +18,7 @@ interface UiState {
 export const useUiStore = create<UiState>()(
   persist(
     (set) => ({
-      ekran: 'delovi',
+      ekran: 'prostor',
       jezik: 'sr',
       deoUIzmeni: null,
       postaviEkran: (ekran) => set({ ekran }),

@@ -1,37 +1,33 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Deo, Kant, Kantovanje, Materijal, Polozaj, Projekat, Sklop } from '../types/domain';
-import { PODRAZUMEVAN_POLOZAJ, PRAZNO_KANTOVANJE } from '../types/domain';
+import type { Deo, Kant, Kantovanje, Materijal, Projekat } from '../types/domain';
+import { PRAZNO_KANTOVANJE } from '../types/domain';
+import type { Element, Okret, Prostorija, TipElementa } from '../types/elementi';
+import { opisTipa, PODRAZUMEVANA_PROSTORIJA } from '../types/elementi';
 import { noviProjekat } from '../data/defaults';
+import { otisak, slobodnoMesto } from '../lib/prostor';
 import { uid } from '../lib/uid';
 
 interface ProjectState {
   projekat: Projekat;
 
   postaviProjekat: (p: Partial<Pick<Projekat, 'naziv' | 'musterija' | 'datum'>>) => void;
+  postaviProstoriju: (izmena: Partial<Prostorija>) => void;
   resetProjekat: () => void;
 
-  dodajSklop: (naziv: string) => string;
-  izmeniSklop: (id: string, izmena: Partial<Sklop>) => void;
-  /** Kopira sklop zajedno sa svim njegovim delovima i njihovim položajima. */
-  duplirajSklop: (id: string) => string | null;
-  obrisiSklop: (id: string) => void;
+  dodajElement: (tip: TipElementa) => string;
+  izmeniElement: (id: string, izmena: Partial<Element>) => void;
+  pomeriElement: (id: string, x: number, z: number) => void;
+  okreniElement: (id: string) => void;
+  duplirajElement: (id: string) => string | null;
+  obrisiElement: (id: string) => void;
 
   dodajDeo: (deo?: Partial<Deo>) => string;
   izmeniDeo: (id: string, izmena: Partial<Deo>) => void;
   obrisiDeo: (id: string) => void;
   duplirajDeo: (id: string) => void;
 
-  /** Postavlja deo u prostor sklopa ili menja njegov položaj. */
-  postaviPolozaj: (id: string, izmena: Partial<Polozaj>) => void;
-  /** Vraća deo iz prostora u „nepostavljene". */
-  ukloniIzProstora: (id: string) => void;
-
-  /** Zaključava teksturu svim delovima na materijalima sa teksturom. */
-  zakljucajTeksturuGdeTreba: () => void;
-
   izmeniKant: (id: string, izmena: Partial<Kant>) => void;
-
   dodajMaterijal: () => string;
   izmeniMaterijal: (id: string, izmena: Partial<Materijal>) => void;
   obrisiMaterijal: (id: string) => void;
@@ -41,6 +37,14 @@ function praznoKantovanje(): Kantovanje {
   return { ...PRAZNO_KANTOVANJE };
 }
 
+/** Korpus ide na prvi materijal, leđa na najtanji, front na onaj sa teksturom. */
+function podrazumevaniMaterijali(materijali: Materijal[]) {
+  const korpus = materijali[0]?.id ?? '';
+  const ledja = [...materijali].sort((a, b) => a.debljina - b.debljina)[0]?.id ?? korpus;
+  const front = materijali.find((m) => m.imaTeksturu)?.id ?? korpus;
+  return { korpus, ledja, front };
+}
+
 export const useProjectStore = create<ProjectState>()(
   persist(
     (set, get) => ({
@@ -48,75 +52,123 @@ export const useProjectStore = create<ProjectState>()(
 
       postaviProjekat: (p) => set((s) => ({ projekat: { ...s.projekat, ...p } })),
 
+      postaviProstoriju: (izmena) =>
+        set((s) => ({
+          projekat: { ...s.projekat, prostorija: { ...s.projekat.prostorija, ...izmena } },
+        })),
+
       resetProjekat: () => set({ projekat: noviProjekat() }),
 
-      dodajSklop: (naziv) => {
-        const id = uid('skl');
+      /* ── Elementi ─────────────────────────────────────── */
+
+      dodajElement: (tip) => {
+        const id = uid('el');
+        const opis = opisTipa(tip);
+        const { projekat } = get();
+        const mat = podrazumevaniMaterijali(projekat.materijali);
+
+        const broj = projekat.elementi.filter((e) => e.tip === tip).length + 1;
+        const nacrt: Element = {
+          id,
+          tip,
+          naziv: `${opis.naziv} ${broj}`,
+          sirina: opis.sirina,
+          visina: opis.visina,
+          dubina: opis.dubina,
+          x: 0,
+          z: 0,
+          podizanje: opis.podizanje,
+          okret: 0,
+          imaFront: opis.imaFront,
+          imaLedja: opis.imaLedja,
+          brojPolica: opis.brojPolica,
+          brojFioka: opis.brojFioka,
+          brojKrila: opis.brojKrila,
+          materijalKorpusa: mat.korpus,
+          materijalFronta: mat.front,
+          materijalLedja: mat.ledja,
+        };
+
+        const debljinaFronta =
+          projekat.materijali.find((m) => m.id === mat.front)?.debljina ?? 18;
+        // Novi element ne pada preko postojećih — traži prvo slobodno mesto.
+        const mesto = slobodnoMesto(
+          otisak(nacrt, debljinaFronta),
+          projekat.elementi
+            .filter((e) => e.podizanje === nacrt.podizanje)
+            .map((e) => otisak(e, debljinaFronta)),
+          projekat.prostorija,
+        );
+
         set((s) => ({
-          projekat: {
-            ...s.projekat,
-            sklopovi: [
-              ...s.projekat.sklopovi,
-              { id, naziv, sirina: null, visina: null, dubina: null },
-            ],
-          },
+          projekat: { ...s.projekat, elementi: [...s.projekat.elementi, { ...nacrt, ...mesto }] },
         }));
         return id;
       },
 
-      izmeniSklop: (id, izmena) =>
+      izmeniElement: (id, izmena) =>
         set((s) => ({
           projekat: {
             ...s.projekat,
-            sklopovi: s.projekat.sklopovi.map((k) => (k.id === id ? { ...k, ...izmena } : k)),
+            elementi: s.projekat.elementi.map((e) => (e.id === id ? { ...e, ...izmena } : e)),
           },
         })),
 
-      duplirajSklop: (id) => {
-        const izvor = get().projekat.sklopovi.find((s) => s.id === id);
+      pomeriElement: (id, x, z) =>
+        set((s) => ({
+          projekat: {
+            ...s.projekat,
+            elementi: s.projekat.elementi.map((e) => (e.id === id ? { ...e, x, z } : e)),
+          },
+        })),
+
+      okreniElement: (id) =>
+        set((s) => ({
+          projekat: {
+            ...s.projekat,
+            elementi: s.projekat.elementi.map((e) =>
+              e.id === id ? { ...e, okret: (((e.okret + 90) % 360) as Okret) } : e,
+            ),
+          },
+        })),
+
+      duplirajElement: (id) => {
+        const izvor = get().projekat.elementi.find((e) => e.id === id);
         if (!izvor) return null;
-        const noviId = uid('skl');
+        const noviId = uid('el');
+        const debljinaFronta =
+          get().projekat.materijali.find((m) => m.id === izvor.materijalFronta)?.debljina ?? 18;
+        const kopija: Element = { ...izvor, id: noviId };
+        const mesto = slobodnoMesto(
+          otisak(kopija, debljinaFronta),
+          get()
+            .projekat.elementi.filter((e) => e.podizanje === izvor.podizanje)
+            .map((e) => otisak(e, debljinaFronta)),
+          get().projekat.prostorija,
+        );
         set((s) => {
-          const kopijeDelova = s.projekat.delovi
-            .filter((d) => d.sklopId === id)
-            .map((d) => ({
-              ...d,
-              id: uid('deo'),
-              sklopId: noviId,
-              kant: { ...d.kant },
-              polozaj: d.polozaj ? { ...d.polozaj } : null,
-            }));
-          const mesto = s.projekat.sklopovi.findIndex((x) => x.id === id);
-          const sklopovi = [...s.projekat.sklopovi];
-          sklopovi.splice(mesto + 1, 0, { ...izvor, id: noviId, naziv: `${izvor.naziv} (kopija)` });
-          return {
-            projekat: {
-              ...s.projekat,
-              sklopovi,
-              delovi: [...s.projekat.delovi, ...kopijeDelova],
-            },
-          };
+          const i = s.projekat.elementi.findIndex((e) => e.id === id);
+          const elementi = [...s.projekat.elementi];
+          elementi.splice(i + 1, 0, { ...kopija, ...mesto });
+          return { projekat: { ...s.projekat, elementi } };
         });
         return noviId;
       },
 
-      /** Brisanje sklopa ne briše delove — vraća ih u „bez sklopa". */
-      obrisiSklop: (id) =>
+      obrisiElement: (id) =>
         set((s) => ({
           projekat: {
             ...s.projekat,
-            sklopovi: s.projekat.sklopovi.filter((k) => k.id !== id),
-            delovi: s.projekat.delovi.map((d) =>
-              d.sklopId === id ? { ...d, sklopId: null } : d,
-            ),
+            elementi: s.projekat.elementi.filter((e) => e.id !== id),
           },
         })),
+
+      /* ── Ručno dodati delovi ──────────────────────────── */
 
       dodajDeo: (deo) => {
         const id = uid('deo');
         const prviMaterijal = get().projekat.materijali[0];
         const noviDeo: Deo = {
-          sklopId: null,
           naziv: '',
           materijalId: prviMaterijal ? prviMaterijal.id : '',
           duzina: 0,
@@ -124,14 +176,11 @@ export const useProjectStore = create<ProjectState>()(
           kom: 1,
           teksturaZakljucana: false,
           napomena: '',
-          polozaj: null,
           ...deo,
           id,
           kant: deo?.kant ? { ...deo.kant } : praznoKantovanje(),
         };
-        set((s) => ({
-          projekat: { ...s.projekat, delovi: [...s.projekat.delovi, noviDeo] },
-        }));
+        set((s) => ({ projekat: { ...s.projekat, delovi: [...s.projekat.delovi, noviDeo] } }));
         return id;
       },
 
@@ -159,36 +208,7 @@ export const useProjectStore = create<ProjectState>()(
           return { projekat: { ...s.projekat, delovi } };
         }),
 
-      postaviPolozaj: (id, izmena) =>
-        set((s) => ({
-          projekat: {
-            ...s.projekat,
-            delovi: s.projekat.delovi.map((d) =>
-              d.id === id
-                ? { ...d, polozaj: { ...(d.polozaj ?? PODRAZUMEVAN_POLOZAJ), ...izmena } }
-                : d,
-            ),
-          },
-        })),
-
-      ukloniIzProstora: (id) =>
-        set((s) => ({
-          projekat: {
-            ...s.projekat,
-            delovi: s.projekat.delovi.map((d) => (d.id === id ? { ...d, polozaj: null } : d)),
-          },
-        })),
-
-      zakljucajTeksturuGdeTreba: () =>
-        set((s) => ({
-          projekat: {
-            ...s.projekat,
-            delovi: s.projekat.delovi.map((d) => {
-              const m = s.projekat.materijali.find((x) => x.id === d.materijalId);
-              return m?.imaTeksturu ? { ...d, teksturaZakljucana: true } : d;
-            }),
-          },
-        })),
+      /* ── Materijali i kantovi ─────────────────────────── */
 
       izmeniKant: (id, izmena) =>
         set((s) => ({
@@ -232,10 +252,14 @@ export const useProjectStore = create<ProjectState>()(
           },
         })),
 
-      /** Materijal se ne može obrisati dok ga neki deo koristi. */
+      /** Materijal se ne može obrisati dok ga neko koristi. */
       obrisiMaterijal: (id) =>
         set((s) => {
-          if (s.projekat.delovi.some((d) => d.materijalId === id)) return s;
+          const uElementima = s.projekat.elementi.some(
+            (e) =>
+              e.materijalKorpusa === id || e.materijalFronta === id || e.materijalLedja === id,
+          );
+          if (uElementima || s.projekat.delovi.some((d) => d.materijalId === id)) return s;
           return {
             projekat: {
               ...s.projekat,
@@ -246,15 +270,25 @@ export const useProjectStore = create<ProjectState>()(
     }),
     {
       name: 'krojac-tabli/projekat',
-      version: 2,
-      /** v1 nije imao položaj u prostoru — stari projekti ostaju ispravni. */
+      version: 3,
+      /**
+       * v3 menja suštinu: delovi se više ne unose ručno nego ispadaju iz
+       * elemenata. Stari ručno uneti delovi ostaju kao „dodatni delovi",
+       * ne gube se; sklopovi otpadaju jer ih zamenjuju elementi.
+       */
       migrate: (sacuvano, verzija) => {
-        const stanje = sacuvano as { projekat: Projekat };
-        if (verzija < 2 && stanje?.projekat) {
-          stanje.projekat.delovi = stanje.projekat.delovi.map((d) => ({
-            ...d,
-            polozaj: d.polozaj ?? null,
-          }));
+        const stanje = sacuvano as { projekat: Projekat & Record<string, unknown> };
+        if (verzija < 3 && stanje?.projekat) {
+          const p = stanje.projekat;
+          p.prostorija = p.prostorija ?? { ...PODRAZUMEVANA_PROSTORIJA };
+          p.elementi = p.elementi ?? [];
+          p.delovi = (p.delovi ?? []).map((deo) => {
+            const d = deo as unknown as Record<string, unknown>;
+            delete d.sklopId;
+            delete d.polozaj;
+            return deo;
+          });
+          delete p.sklopovi;
         }
         return stanje;
       },

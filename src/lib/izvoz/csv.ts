@@ -1,5 +1,6 @@
 import type { Projekat } from '../../types/domain';
 import { redoviListe } from './podaci';
+import { sazmiStavke, stavkeListe } from '../lista';
 
 function polje(v: string | number): string {
   const s = String(v);
@@ -12,12 +13,16 @@ function polje(v: string | number): string {
  */
 export function napraviCsv(projekat: Projekat): Blob {
   const zaglavlje = [
-    'Sklop', 'Naziv', 'Materijal', 'Dužina', 'Širina', 'Komada',
+    'Element', 'Naziv', 'Materijal', 'Dužina', 'Širina', 'Komada',
     'Kant L1', 'Kant L2', 'Kant W1', 'Kant W2', 'Tekstura', 'Napomena',
   ];
 
-  const redovi = redoviListe(projekat).map((r) => [
-    r.sklop, r.naziv, r.materijal, r.duzina, r.sirina, r.kom,
+  const redovi = redoviListe(
+    sazmiStavke(stavkeListe(projekat)),
+    projekat.materijali,
+    projekat.kantovi,
+  ).map((r) => [
+    r.poreklo, r.naziv, r.materijal, r.duzina, r.sirina, r.kom,
     r.kant.L1, r.kant.L2, r.kant.W1, r.kant.W2,
     r.tekstura ? 'zaključana' : '', r.napomena,
   ]);

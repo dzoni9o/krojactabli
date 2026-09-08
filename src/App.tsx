@@ -10,9 +10,9 @@ import { DeloviScreen } from './screens/DeloviScreen';
 import { MaterijaliScreen } from './screens/MaterijaliScreen';
 import { RasporedScreen } from './screens/RasporedScreen';
 
-// three.js je krupan — ucitava se tek kad se otvori 3D sklop.
-const SklopScreen = lazy(() =>
-  import('./screens/SklopScreen').then((m) => ({ default: m.SklopScreen })),
+// three.js je krupan — učitava se tek kad se otvori prostor.
+const ProstorScreen = lazy(() =>
+  import('./screens/ProstorScreen').then((m) => ({ default: m.ProstorScreen })),
 );
 import { DeoIzmena } from './screens/DeoIzmena';
 
@@ -41,13 +41,19 @@ export default function App() {
       </header>
 
       <main className="app__body">
-        {ekran === 'delovi' && <DeloviScreen />}
-        {ekran === 'raspored' && <RasporedScreen />}
-        {ekran === 'sklop' && (
-          <Suspense fallback={<div className="traka"><div className="traka__punjenje" style={{ width: '40%' }} /></div>}>
-            <SklopScreen />
+        {ekran === 'prostor' && (
+          <Suspense
+            fallback={
+              <div className="traka">
+                <div className="traka__punjenje" style={{ width: '40%' }} />
+              </div>
+            }
+          >
+            <ProstorScreen />
           </Suspense>
         )}
+        {ekran === 'delovi' && <DeloviScreen />}
+        {ekran === 'raspored' && <RasporedScreen />}
         {ekran === 'materijali' && <MaterijaliScreen />}
       </main>
 
