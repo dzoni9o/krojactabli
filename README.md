@@ -14,6 +14,7 @@ Plan i domenske odluke: **[PLAN.md](./PLAN.md)**
 | F2 | Nesting (guillotine + kerf + obrez + tekstura) i prikaz tabli | ✅ |
 | F3 | PDF i CSV izlaz | ✅ |
 | F4 | 3D sklapanje korpusa | ✅ |
+| PWA | Rad bez mreže, dodavanje na početni ekran | ✅ |
 | F5 | Supabase sync (offline → online) | — |
 
 ## Pokretanje
@@ -33,6 +34,18 @@ npm run typecheck
 - 3D provera korpusa: preklapanja i delovi koji vire iz gabarita
 - PDF krojna lista sa crtežima tabli, CSV za dobavljača
 - obračun cene: ploče po **broju tabli** (ne po kvadraturi delova) + kant po metru
+- **radi bez mreže** — ceo alat, uključujući 3D i PDF, ide iz keša
+
+## Rad bez mreže
+
+Aplikacija je PWA: sve što joj treba je u kešu, pa radi i bez signala —
+i nesting, i 3D, i PDF izvoz. Fontovi su self-hostovani, ne sa Google Fonts,
+jer bi bez mreže otišao pola identiteta.
+
+Nova verzija se **ne uvodi sama**. Kad stigne, javi se trakom „Nova verzija je
+spremna" i čeka klik — aplikacija se ne sme zameniti usred posla na gradilištu.
+
+Na telefonu: otvori u browseru → „Dodaj na početni ekran".
 
 ## Osnovna pravila domena
 
@@ -58,5 +71,8 @@ src/
   store/              Zustand: projekat (persist) + stanje UI-ja
   components/         Fioka, KantIzbor, Prekidac, TabBar, Polje
   screens/            Delovi, Materijali, izmena dela, placeholderi
-  styles/             NikVolt dizajn sistem (tokens.css) + app.css
+  styles/             NikVolt dizajn sistem (tokens.css) + app.css + fontovi.css
+public/
+  fontovi/            Space Mono i Syne, self-hostovani (latin + latin-ext)
+  ikona-*.png         ikone za početni ekran
 ```

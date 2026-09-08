@@ -4,6 +4,8 @@ import './styles/app.css';
 import { useT } from './i18n';
 import { useUiStore } from './store/useUiStore';
 import { TabBar } from './components/TabBar';
+import { OznakaVeze } from './components/OznakaVeze';
+import { JavkaVerzije } from './components/JavkaVerzije';
 import { DeloviScreen } from './screens/DeloviScreen';
 import { MaterijaliScreen } from './screens/MaterijaliScreen';
 import { RasporedScreen } from './screens/RasporedScreen';
@@ -28,6 +30,7 @@ export default function App() {
           KROJAČ<span>·</span>TABLI
         </span>
         <span className="app__spacer" />
+        <OznakaVeze />
         <button
           className="app__lang"
           onClick={() => postaviJezik(jezik === 'sr' ? 'en' : 'sr')}
@@ -49,6 +52,7 @@ export default function App() {
       </main>
 
       <TabBar />
+      <JavkaVerzije />
 
       {deoUIzmeni && <DeoIzmena key={deoUIzmeni} deoId={deoUIzmeni} />}
 

@@ -20,6 +20,7 @@
 
 .app__mark {
   font-family: var(--nv-display);
+  font-weight: 700;
   font-size: 15px;
   letter-spacing: -0.02em;
   white-space: nowrap;
@@ -688,4 +689,60 @@
 .scena__centar:hover {
   color: var(--nv-accent);
   border-color: var(--nv-accent);
+}
+
+/* ── Veza i nove verzije ────────────────────────────────── */
+.veza {
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  white-space: nowrap;
+}
+
+.veza--dole {
+  border: 1px solid var(--nv-warn);
+  color: var(--nv-warn);
+}
+
+.javka {
+  position: fixed;
+  left: 12px;
+  right: 12px;
+  bottom: calc(var(--nv-nav-h) + env(safe-area-inset-bottom) + 12px);
+  z-index: 35;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--nv-surface-2);
+  border: 1px solid var(--nv-accent);
+  border-radius: var(--nv-r-lg);
+  font-size: 12px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.6);
+}
+
+.javka span {
+  flex: 1;
+  min-width: 0;
+}
+
+.javka .nv-btn {
+  min-height: 36px;
+  padding: 0 12px;
+  flex: none;
+}
+
+.javka--tiha {
+  border-color: var(--nv-line-strong);
+  justify-content: center;
+  color: var(--nv-text-dim);
+}
+
+@media (min-width: 720px) {
+  .javka {
+    left: auto;
+    right: 20px;
+    width: 380px;
+  }
 }
