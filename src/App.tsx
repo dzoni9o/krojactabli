@@ -5,6 +5,7 @@ import { useUiStore } from './store/useUiStore';
 import { TabBar } from './components/TabBar';
 import { DeloviScreen } from './screens/DeloviScreen';
 import { MaterijaliScreen } from './screens/MaterijaliScreen';
+import { RasporedScreen } from './screens/RasporedScreen';
 import { UskoroScreen } from './screens/UskoroScreen';
 import { DeoIzmena } from './screens/DeoIzmena';
 
@@ -33,13 +34,7 @@ export default function App() {
 
       <main className="app__body">
         {ekran === 'delovi' && <DeloviScreen />}
-        {ekran === 'raspored' && (
-          <UskoroScreen
-            faza="F2"
-            naslov="Raspored"
-            opis="Raspored delova po tablama, guillotine rez."
-          />
-        )}
+        {ekran === 'raspored' && <RasporedScreen />}
         {ekran === 'sklop' && (
           <UskoroScreen faza="F4" naslov="Sklop" opis="Sklapanje korpusa u 3D prostoru." />
         )}

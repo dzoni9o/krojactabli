@@ -1,7 +1,7 @@
 import type { Deo, Sklop } from '../types/domain';
 import { useProjectStore } from '../store/useProjectStore';
 import { useUiStore } from '../store/useUiStore';
-import { useT } from '../i18n';
+import { useReci, useT } from '../i18n';
 import { Polje } from '../components/Polje';
 import { broj, rezimeProjekta } from '../lib/obracun';
 import { IVICE } from '../types/domain';
@@ -52,6 +52,7 @@ function RedDela({ deo }: { deo: Deo }) {
 
 function Grupa({ sklop, delovi }: { sklop: Sklop | null; delovi: Deo[] }) {
   const t = useT();
+  const reci = useReci();
   const dodajDeo = useProjectStore((s) => s.dodajDeo);
   const obrisiSklop = useProjectStore((s) => s.obrisiSklop);
   const otvoriDeo = useUiStore((s) => s.otvoriDeo);
@@ -63,7 +64,7 @@ function Grupa({ sklop, delovi }: { sklop: Sklop | null; delovi: Deo[] }) {
       <div className="grupa__glava">
         <span className="grupa__naziv">{sklop ? sklop.naziv : t('Bez sklopa')}</span>
         <span className="grupa__broj">
-          {delovi.length} {t('delova')}
+          {delovi.length} {reci.delovi(delovi.length)}
         </span>
         <span className="app__spacer" />
         <button

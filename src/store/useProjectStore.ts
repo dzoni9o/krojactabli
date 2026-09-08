@@ -20,6 +20,9 @@ interface ProjectState {
   obrisiDeo: (id: string) => void;
   duplirajDeo: (id: string) => void;
 
+  /** Zaključava teksturu svim delovima na materijalima sa teksturom. */
+  zakljucajTeksturuGdeTreba: () => void;
+
   dodajMaterijal: () => string;
   izmeniMaterijal: (id: string, izmena: Partial<Materijal>) => void;
   obrisiMaterijal: (id: string) => void;
@@ -117,6 +120,17 @@ export const useProjectStore = create<ProjectState>()(
           delovi.splice(i + 1, 0, kopija);
           return { projekat: { ...s.projekat, delovi } };
         }),
+
+      zakljucajTeksturuGdeTreba: () =>
+        set((s) => ({
+          projekat: {
+            ...s.projekat,
+            delovi: s.projekat.delovi.map((d) => {
+              const m = s.projekat.materijali.find((x) => x.id === d.materijalId);
+              return m?.imaTeksturu ? { ...d, teksturaZakljucana: true } : d;
+            }),
+          },
+        })),
 
       dodajMaterijal: () => {
         const id = uid('mat');

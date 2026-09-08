@@ -489,3 +489,118 @@
   max-width: 380px;
   margin: 0 auto;
 }
+
+/* ── Raspored po tablama ────────────────────────────────── */
+.tabla {
+  background: var(--nv-surface);
+  border: 1px solid var(--nv-line);
+  border-radius: var(--nv-r-lg);
+  padding: 12px;
+  margin-bottom: 14px;
+}
+
+.tabla__glava {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.tabla__naziv {
+  font-family: var(--nv-display);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.tabla__mera {
+  font-size: 11px;
+  color: var(--nv-text-faint);
+}
+
+.tabla__procenat {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--nv-accent);
+}
+
+.legenda {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  columns: 2;
+  column-gap: 16px;
+}
+
+@media (max-width: 480px) {
+  .legenda {
+    columns: 1;
+  }
+}
+
+.legenda li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 3px 0;
+  font-size: 11px;
+  break-inside: avoid;
+}
+
+.legenda__broj {
+  flex: none;
+  min-width: 20px;
+  text-align: center;
+  font-weight: 700;
+  color: var(--nv-accent);
+}
+
+.legenda__naziv {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--nv-text-dim);
+}
+
+.legenda__mera {
+  flex: none;
+  white-space: nowrap;
+}
+
+/* ── Traka napretka ─────────────────────────────────────── */
+.traka {
+  height: 3px;
+  background: var(--nv-line);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.traka__punjenje {
+  height: 100%;
+  background: var(--nv-accent);
+  transition: width 0.12s linear;
+}
+
+/* ── Upozorenje ─────────────────────────────────────────── */
+.upozorenje {
+  border: 1px solid var(--nv-warn);
+  border-left-width: 3px;
+  border-radius: var(--nv-r);
+  background: rgba(255, 157, 46, 0.07);
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  font-size: 12px;
+}
+
+.upozorenje strong {
+  color: var(--nv-warn);
+}
+
+.upozorenje ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  color: var(--nv-text-dim);
+}
