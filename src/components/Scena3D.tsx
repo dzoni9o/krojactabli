@@ -8,6 +8,8 @@ import type { Kutija } from '../lib/generisi';
 /** Milimetri → jedinice scene: 1 jedinica = 1 metar. */
 const R = 0.001;
 const FOV = 45;
+/** Koliko piksela prst mora da pređe da bi to bilo vučenje, a ne dodir. */
+const PRAG_VUCENJA = 8;
 
 export type Pogled = 'kosi' | 'odozgo';
 
@@ -46,19 +48,29 @@ function Ploca({
   onPocetakVuce: (e: ThreeEvent<PointerEvent>) => void;
   onIzbor: () => void;
 }) {
+  /**
+   * Prvi dodir samo bira element. Vuče se tek drugim pokretom, po već
+   * izabranom. Bez toga svaki dodir odmah kreće da vuče, a prst se uvek
+   * malo pomeri — pa umesto da izabereš korpus, ti ga gurneš.
+   */
+  const naDodir = (e: ThreeEvent<PointerEvent>) => {
+    e.stopPropagation();
+    if (!izabran) {
+      // Ne zaustavljamo OrbitControls: dodir bez pokreta ništa ne pomera,
+      // a pokret sa neizabranog elementa i dalje okreće scenu.
+      onIzbor();
+      return;
+    }
+    // OrbitControls sluša isti pointerdown na platnu; njegov slušalac je
+    // dodat posle našeg, pa ga ovim zaustavljamo pre nego što krene.
+    e.nativeEvent.stopImmediatePropagation();
+    onPocetakVuce(e);
+  };
   const mere: [number, number, number] = [k.sx * R, k.sy * R, k.sz * R];
   return (
     <mesh
       position={[(k.x + k.sx / 2) * R, (k.y + k.sy / 2) * R, (k.z + k.sz / 2) * R]}
-      onPointerDown={(e) => {
-        e.stopPropagation();
-        // OrbitControls sluša isti pointerdown na platnu i počeo bi da vrti
-        // scenu dok vučeš element. Njegov slušalac je dodat posle našeg, pa
-        // ga ovim zaustavljamo pre nego što krene.
-        e.nativeEvent.stopImmediatePropagation();
-        onIzbor();
-        onPocetakVuce(e);
-      }}
+      onPointerDown={naDodir}
     >
       <boxGeometry args={mere} />
       <meshStandardMaterial
@@ -73,14 +85,24 @@ function Ploca({
 
 /* ── Prostorija ─────────────────────────────────────────── */
 
-function Soba({ prostorija }: { prostorija: Prostorija }) {
+/**
+ * Pod i zidovi su stvarna tela u sceni, pa dodir po njima nije „promašaj" —
+ * `onPointerMissed` ne okida i izbor bi ostao da visi. Zato ovde izričito.
+ */
+function Soba({
+  prostorija,
+  onPrazno,
+}: {
+  prostorija: Prostorija;
+  onPrazno: () => void;
+}) {
   const s = prostorija.sirina * R;
   const d = prostorija.duzina * R;
   const v = prostorija.visina * R;
   const debljina = 0.04;
 
   return (
-    <group>
+    <group onPointerDown={onPrazno}>
       {/* pod */}
       <mesh position={[s / 2, -0.005, d / 2]} receiveShadow>
         <boxGeometry args={[s, 0.01, d]} />
@@ -231,7 +253,7 @@ function PodlogaZaVucenje({
 }: {
   prostorija: Prostorija;
   aktivna: boolean;
-  onPokret: (x: number, z: number) => void;
+  onPokret: (x: number, z: number, ekran: { x: number; y: number }) => void;
   onKraj: () => void;
 }) {
   const s = prostorija.sirina * R;
@@ -246,7 +268,10 @@ function PodlogaZaVucenje({
       onPointerMove={(e) => {
         if (!aktivna) return;
         e.stopPropagation();
-        onPokret(e.point.x / R, e.point.z / R);
+        onPokret(e.point.x / R, e.point.z / R, {
+          x: e.nativeEvent.clientX,
+          y: e.nativeEvent.clientY,
+        });
       }}
       onPointerUp={() => aktivna && onKraj()}
     >
@@ -279,6 +304,8 @@ export function Scena3D({
 }) {
   const [vuceId, postaviVuceId] = useState<string | null>(null);
   const pomeraj = useRef({ dx: 0, dz: 0 });
+  const pocetakNaEkranu = useRef({ x: 0, y: 0 });
+  const presaoPrag = useRef(false);
   const ravanPoda = useMemo(() => new Plane(new Vector3(0, 1, 0), 0), []);
 
   const pocetakVuce = useCallback(
@@ -286,14 +313,25 @@ export function Scena3D({
       const tacka = new Vector3();
       if (!e.ray.intersectPlane(ravanPoda, tacka)) return;
       pomeraj.current = { dx: element.x - tacka.x / R, dz: element.z - tacka.z / R };
+      pocetakNaEkranu.current = { x: e.nativeEvent.clientX, y: e.nativeEvent.clientY };
+      presaoPrag.current = false;
       postaviVuceId(element.id);
     },
     [ravanPoda],
   );
 
   const pokret = useCallback(
-    (x: number, z: number) => {
+    (x: number, z: number, ekran: { x: number; y: number }) => {
       if (!vuceId) return;
+      if (!presaoPrag.current) {
+        const put = Math.hypot(
+          ekran.x - pocetakNaEkranu.current.x,
+          ekran.y - pocetakNaEkranu.current.y,
+        );
+        // Prst nikad ne miruje. Ispod ovoga je dodir, a ne vučenje.
+        if (put < PRAG_VUCENJA) return;
+        presaoPrag.current = true;
+      }
       onPomeri(vuceId, x + pomeraj.current.dx, z + pomeraj.current.dz);
     },
     [vuceId, onPomeri],
@@ -328,7 +366,7 @@ export function Scena3D({
       <directionalLight position={[4, 8, 6]} intensity={2.2} />
       <directionalLight position={[-6, 5, -4]} intensity={0.6} />
 
-      <Soba prostorija={prostorija} />
+      <Soba prostorija={prostorija} onPrazno={() => onIzbor(null)} />
 
       <PodlogaZaVucenje
         prostorija={prostorija}

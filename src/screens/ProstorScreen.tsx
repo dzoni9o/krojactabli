@@ -4,6 +4,7 @@ import { KATALOG } from '../types/elementi';
 import { useProjectStore } from '../store/useProjectStore';
 import { useT } from '../i18n';
 import { Polje } from '../components/Polje';
+import { MeraUnos } from '../components/MeraUnos';
 import { Prekidac } from '../components/Prekidac';
 import { Scena3D, type ElementUProstoru, type Pogled } from '../components/Scena3D';
 import { generisiDelove } from '../lib/generisi';
@@ -58,14 +59,11 @@ function PodesavanjeElementa({ element }: { element: Element }) {
   const t = useT();
 
   const mera = (kljuc: 'sirina' | 'visina' | 'dubina' | 'podizanje', oznaka: string) => (
-    <Polje oznaka={oznaka}>
-      <input
-        type="number"
-        inputMode="numeric"
-        value={element[kljuc]}
-        onChange={(e) => izmeni(element.id, { [kljuc]: Math.max(0, Number(e.target.value) || 0) })}
-      />
-    </Polje>
+    <MeraUnos
+      oznaka={oznaka}
+      vrednost={element[kljuc]}
+      onPromena={(v) => izmeni(element.id, { [kljuc]: v })}
+    />
   );
 
   return (
@@ -264,21 +262,63 @@ export function ProstorScreen() {
           >
             ⌖
           </button>
+          <button
+            className={`scena__alat${sobaOtvorena ? ' scena__alat--on' : ''}`}
+            onClick={() => postaviSobaOtvorena((v) => !v)}
+          >
+            {t('SOBA')}
+          </button>
         </div>
 
         {projekat.elementi.length === 0 && (
           <div className="scena__uputstvo">
             <strong>{t('Prazna soba')}</strong>
-            <span>{t('Dodaj element dugmetom ispod, pa ga prstom odvuci na mesto.')}</span>
+            <span>{t('Ubaci element dugmetom ispod. Dodirom ga biraš, vučenjem pomeraš.')}</span>
           </div>
         )}
 
         {projekat.elementi.length > 0 && (
           <span className="scena__uput">
-            {t('Dodirni element · vuci ga po podu · sam se lepi za zid i komšiju')}
+            {t('Dodirni da izabereš, pa vuci da pomeriš — sam se lepi za zid')}
           </span>
         )}
       </div>
+
+      {sobaOtvorena && (
+        <div className="card">
+          <div className="sklop__glava">
+            <strong>{t('Prostorija')}</strong>
+            <span style={{ fontSize: 11, color: 'var(--nv-text-dim)' }}>
+              {t('Zidovi za koje se elementi lepe')}
+            </span>
+          </div>
+          <div className="polja">
+            <MeraUnos
+              oznaka={`${t('Širina')} (mm)`}
+              vrednost={projekat.prostorija.sirina}
+              korak={100}
+              min={500}
+              onPromena={(sirina) => postaviProstoriju({ sirina })}
+            />
+            <MeraUnos
+              oznaka={`${t('Dužina')} (mm)`}
+              vrednost={projekat.prostorija.duzina}
+              korak={100}
+              min={500}
+              onPromena={(duzina) => postaviProstoriju({ duzina })}
+            />
+            <MeraUnos
+              oznaka={`${t('Visina')} (mm)`}
+              vrednost={projekat.prostorija.visina}
+              korak={100}
+              min={1000}
+              onPromena={(visina) => postaviProstoriju({ visina })}
+            />
+          </div>
+        </div>
+      )}
+
+      {izabran && <PodesavanjeElementa element={izabran} />}
 
       <div className="katalog">
         {KATALOG.map((k) => (
@@ -311,47 +351,6 @@ export function ProstorScreen() {
         </div>
       )}
 
-      {izabran && <PodesavanjeElementa element={izabran} />}
-
-      <button
-        className="soba__prekidac"
-        onClick={() => postaviSobaOtvorena((v) => !v)}
-        aria-expanded={sobaOtvorena}
-      >
-        {t('Prostorija')} · {projekat.prostorija.sirina} × {projekat.prostorija.duzina} ×{' '}
-        {projekat.prostorija.visina} {sobaOtvorena ? '▴' : '▾'}
-      </button>
-
-      {sobaOtvorena && (
-        <div className="card">
-          <div className="polja">
-            <Polje oznaka={`${t('Širina')} (mm)`}>
-              <input
-                type="number"
-                inputMode="numeric"
-                value={projekat.prostorija.sirina}
-                onChange={(e) => postaviProstoriju({ sirina: Number(e.target.value) || 0 })}
-              />
-            </Polje>
-            <Polje oznaka={`${t('Dužina')} (mm)`}>
-              <input
-                type="number"
-                inputMode="numeric"
-                value={projekat.prostorija.duzina}
-                onChange={(e) => postaviProstoriju({ duzina: Number(e.target.value) || 0 })}
-              />
-            </Polje>
-            <Polje oznaka={`${t('Visina')} (mm)`}>
-              <input
-                type="number"
-                inputMode="numeric"
-                value={projekat.prostorija.visina}
-                onChange={(e) => postaviProstoriju({ visina: Number(e.target.value) || 0 })}
-              />
-            </Polje>
-          </div>
-        </div>
-      )}
     </>
   );
 }

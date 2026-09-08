@@ -921,3 +921,44 @@
   text-align: left;
   margin-bottom: 12px;
 }
+
+/* ── Unos mere sa ± ─────────────────────────────────────── */
+.mera {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--nv-line-strong);
+  border-radius: var(--nv-r);
+  overflow: hidden;
+  min-height: var(--nv-tap);
+}
+
+.mera button {
+  width: 44px;
+  flex: none;
+  background: var(--nv-surface-2);
+  font-size: 20px;
+  line-height: 1;
+  color: var(--nv-text);
+}
+
+.mera button:active {
+  background: var(--nv-accent);
+  color: var(--nv-accent-ink);
+}
+
+.mera input {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  border: none;
+  border-radius: 0;
+  border-left: 1px solid var(--nv-line);
+  border-right: 1px solid var(--nv-line);
+  font-weight: 700;
+}
+
+.mera input:focus {
+  border-color: var(--nv-line);
+  outline: 1px solid var(--nv-accent);
+  outline-offset: -1px;
+}

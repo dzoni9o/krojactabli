@@ -10,11 +10,13 @@ const en: Record<string, string> = {
   Delovi: 'Parts',
   Prostorija: 'Room',
   'Prazna soba': 'Empty room',
-  'Dodaj element dugmetom ispod, pa ga prstom odvuci na mesto.':
-    'Add an element with a button below, then drag it into place with your finger.',
-  'Dodirni element · vuci ga po podu · sam se lepi za zid i komšiju':
-    'Tap an element · drag it on the floor · it snaps to walls and neighbours',
+  'Ubaci element dugmetom ispod. Dodirom ga biraš, vučenjem pomeraš.':
+    'Add an element with a button below. Tap to select it, drag to move it.',
+  'Dodirni da izabereš, pa vuci da pomeriš — sam se lepi za zid':
+    'Tap to select, then drag to move — it snaps to the wall',
   ODOZGO: 'TOP',
+  SOBA: 'ROOM',
+  'Zidovi za koje se elementi lepe': 'Walls the elements snap to',
   'Donji element': 'Base cabinet',
   'Element sa fiokama': 'Drawer unit',
   'Viseći element': 'Wall cabinet',
