@@ -3,6 +3,7 @@ import { useProjectStore } from '../store/useProjectStore';
 import { useReci, useT } from '../i18n';
 import { useRaspored } from '../hooks/useRaspored';
 import { TablaSvg } from '../components/TablaSvg';
+import { Izvoz } from '../components/Izvoz';
 import { broj } from '../lib/obracun';
 import { delovaBezZakljucaneTeksture } from '../lib/nesting/pripremi';
 import type { RasporedMaterijala } from '../lib/nesting/tipovi';
@@ -153,6 +154,16 @@ export function RasporedScreen() {
       {rasporedi?.map((r) => (
         <Materijal key={r.materijalId} raspored={r} />
       ))}
+
+      {rasporedi && rasporedi.length > 0 && (
+        <>
+          <div className="sec-naslov">
+            <h2>{t('Izvoz')}</h2>
+            <span className="sec-naslov__crta" />
+          </div>
+          <Izvoz rasporedi={rasporedi} />
+        </>
+      )}
     </>
   );
 }

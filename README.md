@@ -11,8 +11,8 @@ Plan i domenske odluke: **[PLAN.md](./PLAN.md)**
 |---|---|---|
 | F0 | Skelet: Vite + React + TS + Zustand, NikVolt dizajn, i18n sr/en | ✅ |
 | F1 | Materijali, kantovanje, unos delova, sklopovi, lokalna persistencija | ✅ |
-| F2 | Nesting (guillotine + kerf + obrez + tekstura) i prikaz tabli | — |
-| F3 | PDF i CSV izlaz | — |
+| F2 | Nesting (guillotine + kerf + obrez + tekstura) i prikaz tabli | ✅ |
+| F3 | PDF i CSV izlaz | ✅ |
 | F4 | 3D sklapanje korpusa | — |
 | F5 | Supabase sync (offline → online) | — |
 
@@ -41,6 +41,8 @@ src/
   types/domain.ts     domenski model (Materijal, Kant, Deo, Sklop, Projekat)
   data/defaults.ts    podrazumevani materijali, kantovi i mere table
   lib/obracun.ts      površine, metri kanta, rezime projekta
+  lib/nesting/        guillotine engine + Web Worker
+  lib/izvoz/          PDF (jsPDF) i CSV, sa ugrađenim fontom za srpska slova
   store/              Zustand: projekat (persist) + stanje UI-ja
   components/         Fioka, KantIzbor, Prekidac, TabBar, Polje
   screens/            Delovi, Materijali, izmena dela, placeholderi
